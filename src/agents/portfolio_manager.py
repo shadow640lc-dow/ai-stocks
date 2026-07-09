@@ -8,7 +8,8 @@ from pydantic import BaseModel, Field
 from typing_extensions import Literal
 from src.utils.progress import progress
 from src.utils.llm import call_llm
-
+from src.database.database import SessionLocal
+from src.database.repositories.trades import save_trade_decision
 
 class PortfolioDecision(BaseModel):
     action: Literal["buy", "sell", "short", "cover", "hold"]
@@ -76,6 +77,23 @@ def portfolio_management_agent(state: AgentState, agent_id: str = "portfolio_man
         agent_id=agent_id,
         state=state,
     )
+    # Save AI decisions to database memory
+    db = SessionLocal()
+
+    try:
+        for ticker, decision in result.decisions.items():
+            save_trade_decision(
+                db=db,
+                ticker=ticker,
+                model_name=state["metadata"].get("model_name", "unknown"),
+                action=decision.action.upper(),
+                quantity=decision.quantity,
+                confidence=decision.confidence,
+                reasoning=decision.reasoning,
+            )
+    finally:
+        db.close()
+
     message = HumanMessage(
         content=json.dumps({ticker: decision.model_dump() for ticker, decision in result.decisions.items()}),
         name=agent_id,
