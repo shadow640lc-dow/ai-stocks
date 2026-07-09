@@ -4,6 +4,7 @@ import os
 import pandas as pd
 import requests
 import time
+import yfinance as yf
 
 logger = logging.getLogger(__name__)
 
@@ -61,39 +62,38 @@ def _make_api_request(url: str, headers: dict, method: str = "GET", json_data: d
 
 
 def get_prices(ticker: str, start_date: str, end_date: str, api_key: str = None) -> list[Price]:
-    """Fetch price data from cache or API."""
-    # Create a cache key that includes all parameters to ensure exact matches
-    cache_key = f"{ticker}_{start_date}_{end_date}"
-    
-    # Check cache first - simple exact match
-    if cached_data := _cache.get_prices(cache_key):
-        return [Price(**price) for price in cached_data]
+    """Fetch price data from Yahoo Finance."""
 
-    # If not in cache, fetch from API
-    headers = {}
-    financial_api_key = api_key or os.environ.get("FINANCIAL_DATASETS_API_KEY")
-    if financial_api_key:
-        headers["X-API-KEY"] = financial_api_key
-
-    url = f"https://api.financialdatasets.ai/prices/?ticker={ticker}&interval=day&interval_multiplier=1&start_date={start_date}&end_date={end_date}"
-    response = _make_api_request(url, headers)
-    if response.status_code != 200:
-        return []
-
-    # Parse response with Pydantic model
     try:
-        price_response = PriceResponse(**response.json())
-        prices = price_response.prices
+        stock = yf.Ticker(ticker)
+
+        df = stock.history(
+            start=start_date,
+            end=end_date
+        )
+
+        if df.empty:
+            return []
+
+        prices = []
+
+        for index, row in df.iterrows():
+            prices.append(
+                Price(
+                    time=index.isoformat(),
+                    open=float(row["Open"]),
+                    close=float(row["Close"]),
+                    high=float(row["High"]),
+                    low=float(row["Low"]),
+                    volume=int(row["Volume"])
+                )
+            )
+
+        return prices
+
     except Exception as e:
-        logger.warning("Failed to parse price response for %s: %s", ticker, e)
+        logger.warning("Yahoo price fetch failed for %s: %s", ticker, e)
         return []
-
-    if not prices:
-        return []
-
-    # Cache the results using the comprehensive cache key
-    _cache.set_prices(cache_key, [p.model_dump() for p in prices])
-    return prices
 
 
 def get_financial_metrics(
@@ -103,39 +103,86 @@ def get_financial_metrics(
     limit: int = 10,
     api_key: str = None,
 ) -> list[FinancialMetrics]:
-    """Fetch financial metrics from cache or API."""
-    # Create a cache key that includes all parameters to ensure exact matches
-    cache_key = f"{ticker}_{period}_{end_date}_{limit}"
-    
-    # Check cache first - simple exact match
-    if cached_data := _cache.get_financial_metrics(cache_key):
-        return [FinancialMetrics(**metric) for metric in cached_data]
+    """Fetch financial metrics from Yahoo Finance (free, no API key required)."""
 
-    # If not in cache, fetch from API
-    headers = {}
-    financial_api_key = api_key or os.environ.get("FINANCIAL_DATASETS_API_KEY")
-    if financial_api_key:
-        headers["X-API-KEY"] = financial_api_key
-
-    url = f"https://api.financialdatasets.ai/financial-metrics/?ticker={ticker}&report_period_lte={end_date}&limit={limit}&period={period}"
-    response = _make_api_request(url, headers)
-    if response.status_code != 200:
-        return []
-
-    # Parse response with Pydantic model
     try:
-        metrics_response = FinancialMetricsResponse(**response.json())
-        financial_metrics = metrics_response.financial_metrics
+        stock = yf.Ticker(ticker)
+        info = stock.info
+
+        metrics = FinancialMetrics(
+            ticker=ticker,
+            report_period=end_date,
+            period=period,
+            currency="USD",
+
+            # Valuation
+            market_cap=info.get("marketCap"),
+            enterprise_value=info.get("enterpriseValue"),
+            
+            earnings_per_share=info.get("trailingEps"),
+            book_value_per_share=info.get("bookValue"),
+            free_cash_flow_per_share=None,
+
+            price_to_earnings_ratio=info.get("trailingPE"),
+            price_to_book_ratio=info.get("priceToBook"),
+            price_to_sales_ratio=info.get("priceToSalesTrailing12Months"),
+            enterprise_value_to_ebitda_ratio=info.get("enterpriseToEbitda"),
+            enterprise_value_to_revenue_ratio=info.get("enterpriseToRevenue"),
+            peg_ratio=info.get("pegRatio"),
+
+            # Profitability
+            gross_margin=info.get("grossMargins"),
+            operating_margin=info.get("operatingMargins"),
+            net_margin=info.get("profitMargins"),
+
+            return_on_equity=info.get("returnOnEquity"),
+            return_on_assets=info.get("returnOnAssets"),
+            return_on_invested_capital=None,
+
+            # Efficiency
+            asset_turnover=None,
+            inventory_turnover=None,
+            receivables_turnover=None,
+            days_sales_outstanding=None,
+            operating_cycle=None,
+            working_capital_turnover=None,
+
+            # Liquidity
+            current_ratio=info.get("currentRatio"),
+            quick_ratio=info.get("quickRatio"),
+            cash_ratio=None,
+            operating_cash_flow_ratio=None,
+
+            # Debt
+            debt_to_equity=info.get("debtToEquity"),
+            debt_to_assets=None,
+            interest_coverage=None,
+
+            # Growth
+            revenue_growth=info.get("revenueGrowth"),
+            earnings_growth=info.get("earningsGrowth"),
+            book_value_growth=None,
+            earnings_per_share_growth=None,
+            free_cash_flow_growth=None,
+            operating_income_growth=None,
+            ebitda_growth=None,
+
+            # Cash flow
+            free_cash_flow_yield=None,
+
+            # Dividends
+            payout_ratio=info.get("payoutRatio"),
+        )
+
+        return [metrics]
+
     except Exception as e:
-        logger.warning("Failed to parse financial metrics response for %s: %s", ticker, e)
+        logger.warning(
+            "Yahoo financial metrics failed for %s: %s",
+            ticker,
+            e
+        )
         return []
-
-    if not financial_metrics:
-        return []
-
-    # Cache the results as dicts using the comprehensive cache key
-    _cache.set_financial_metrics(cache_key, [m.model_dump() for m in financial_metrics])
-    return financial_metrics
 
 
 def search_line_items(
@@ -317,35 +364,18 @@ def get_market_cap(
     end_date: str,
     api_key: str = None,
 ) -> float | None:
-    """Fetch market cap from the API."""
-    # Check if end_date is today
-    if end_date == datetime.datetime.now().strftime("%Y-%m-%d"):
-        # Get the market cap from company facts API
-        headers = {}
-        financial_api_key = api_key or os.environ.get("FINANCIAL_DATASETS_API_KEY")
-        if financial_api_key:
-            headers["X-API-KEY"] = financial_api_key
+    """Fetch market cap from Yahoo Finance."""
 
-        url = f"https://api.financialdatasets.ai/company/facts/?ticker={ticker}"
-        response = _make_api_request(url, headers)
-        if response.status_code != 200:
-            print(f"Error fetching company facts: {ticker} - {response.status_code}")
-            return None
+    try:
+        stock = yf.Ticker(ticker)
 
-        data = response.json()
-        response_model = CompanyFactsResponse(**data)
-        return response_model.company_facts.market_cap
+        info = stock.info
 
-    financial_metrics = get_financial_metrics(ticker, end_date, api_key=api_key)
-    if not financial_metrics:
+        return info.get("marketCap")
+
+    except Exception as e:
+        logger.warning("Yahoo market cap failed for %s: %s", ticker, e)
         return None
-
-    market_cap = financial_metrics[0].market_cap
-
-    if not market_cap:
-        return None
-
-    return market_cap
 
 
 def prices_to_df(prices: list[Price]) -> pd.DataFrame:
