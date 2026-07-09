@@ -118,7 +118,7 @@ AVAILABLE_MODELS = load_models_from_json(str(models_json_path))
 OLLAMA_MODELS = load_models_from_json(str(ollama_models_json_path))
 
 # Create LLM_ORDER in the format expected by the UI
-LLM_ORDER = [model.to_choice_tuple() for model in AVAILABLE_MODELS]
+LLM_ORDER = [model.to_choice_tuple() for model in AVAILABLE_MODELS + OLLAMA_MODELS]
 
 # Create Ollama LLM_ORDER separately
 OLLAMA_LLM_ORDER = [model.to_choice_tuple() for model in OLLAMA_MODELS]
@@ -144,7 +144,7 @@ def get_models_list():
             "model_name": model.model_name,
             "provider": model.provider.value
         }
-        for model in AVAILABLE_MODELS
+        for model in AVAILABLE_MODELS + OLLAMA_MODELS
     ]
 
 
