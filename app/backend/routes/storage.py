@@ -11,14 +11,7 @@ class SaveJsonRequest(BaseModel):
     filename: str
     data: dict
 
-@router.post(
-    path="/save-json",
-    responses={
-        200: {"description": "File saved successfully"},
-        400: {"model": ErrorResponse, "description": "Invalid request parameters"},
-        500: {"model": ErrorResponse, "description": "Internal server error"},
-    },
-)
+@router.post("/save-json")
 async def save_json_file(request: SaveJsonRequest):
     """Save JSON data to the project's /outputs directory."""
     try:

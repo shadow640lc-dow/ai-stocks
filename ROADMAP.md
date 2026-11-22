@@ -78,9 +78,19 @@ can be backtested and combined — is a great first contribution:
 |------|--------|
 | Risk model — hard caps (pod-level budgets + fund-level limits) | ⬜ |
 | Broker protocol — pluggable, mirrors the `DataClient` pattern | ⬜ |
-| ↳ Simulated broker (backtest) | ⬜ |
-| ↳ Paper broker | ⬜ |
-| ↳ Live broker (Interactive Brokers / Alpaca) — opt-in plugin, off by default | ⬜ |
+| ↳ Simulated broker (backtest) | ✅ (`src/utils/alpaca_broker.py` dry-run + FakeBroker in tests) |
+| ↳ Paper broker — Alpaca paper trading | ✅ (`ALPACA_MODE=paper`) |
+| ↳ Live broker (Interactive Brokers / Alpaca) — opt-in plugin, off by default | ✅ Alpaca Trading API (confirm-first, per-order) |
+| Per-order confirmation + notional cap + market/short gates | ✅ enforced in executor, covered-call scanner, scout |
+
+**Shipped live paths (confirm-first, gated, off by default):**
+
+- megastocks `--alpaca` (AIHF actions) → Alpaca
+- megacalls `--alpaca` (covered call: stock buy + option sell-to-open) → Alpaca
+- AI Scout webhook `execute` + `secret` → Alpaca
+- megacrypto menu `[7]` gated Solana swap → simulate-on-RPC → explicit `YES` → sign → broadcast (Jupiter, `crypto_arb/solana_live_executor.py`)
+
+Keys gate every path via `~/ai-stocks/.env` (gitignored). Documented in `AI_STOCKS_OPERATIONS_MANUAL.md` §12.
 
 ## Autonomy
 

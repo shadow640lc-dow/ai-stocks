@@ -36,10 +36,15 @@ def growth_analyst_agent(state: AgentState, agent_id: str = "growth_analyst_agen
             limit=12, # 3 years of ttm data
             api_key=api_key,
         )
-        if not financial_metrics or len(financial_metrics) < 4:
-            progress.update_status(agent_id, ticker, "Failed: Not enough financial metrics")
+        if not financial_metrics:
+            progress.update_status(agent_id, ticker, "Failed: No financial metrics")
             continue
-        
+
+        # Yahoo's free adapter exposes the latest snapshot rather than a long
+        # history. A single real snapshot is still enough to score growth,
+        # valuation, margins, insider activity and balance-sheet health; trend
+        # fields are simply neutral when history is unavailable.
+        history_periods = len(financial_metrics)
         most_recent_metrics = financial_metrics[0]
 
         # --- Insider Trades ---
@@ -105,6 +110,11 @@ def growth_analyst_agent(state: AgentState, agent_id: str = "growth_analyst_agen
             "margin_expansion": margin_trends,
             "insider_conviction": insider_conviction,
             "financial_health": financial_health,
+            "data_quality": {
+                "history_periods": history_periods,
+                "history_available": history_periods > 1,
+                "source": "Yahoo Finance" if history_periods else "unavailable",
+            },
             "final_analysis": {
                 "signal": signal,
                 "confidence": confidence,

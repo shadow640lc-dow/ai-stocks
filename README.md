@@ -1,159 +1,161 @@
-# AI Hedge Fund
+<p align="center">
+  <img src="assets/megatron-128.png" width="96" alt="MEGATRON">
+</p>
 
-This is a proof of concept for an AI-powered hedge fund.  The goal of this project is to explore the use of AI to make trading decisions.  This project is for **educational** purposes only and is not intended for real trading or investment.
+# MEGATRON — AI Hedge Fund Desk
 
-> **🚧 The project is evolving.** We're rebuilding it into a persistent, always-on AI hedge fund — a *fund* as a first-class entity you can backtest, paper-trade, and (opt-in) run live, with the investor agents reimagined as pluggable, backtestable "alpha models." Read the **[Vision →](VISION.md)** and the **[Roadmap →](ROADMAP.md)**.
+An AI-powered equity research and trading desk. MEGATRON wraps the
+[AI Hedge Fund](https://github.com/virattt/ai-hedge-fund) analyst engine with a native
+desktop terminal, a web application, a CLI, a backtester, and opt-in live execution.
 
-This system employs several agents working together:
+> **Educational and research use only.** This is not investment advice. Nothing here
+> is guaranteed to make money. Live trading is opt-in, gated, and off by default.
 
-1. Aswath Damodaran Agent - The Dean of Valuation, focuses on story, numbers, and disciplined valuation
-2. Ben Graham Agent - The godfather of value investing, only buys hidden gems with a margin of safety
-3. Bill Ackman Agent - An activist investor, takes bold positions and pushes for change
-4. Cathie Wood Agent - The queen of growth investing, believes in the power of innovation and disruption
-5. Charlie Munger Agent - Warren Buffett's partner, only buys wonderful businesses at fair prices
-6. Michael Burry Agent - The Big Short contrarian who hunts for deep value
-7. Mohnish Pabrai Agent - The Dhandho investor, who looks for doubles at low risk
-8. Nassim Taleb Agent - The Black Swan risk analyst, focuses on tail risk, antifragility, and asymmetric payoffs
-9. Peter Lynch Agent - Practical investor who seeks "ten-baggers" in everyday businesses
-10. Phil Fisher Agent - Meticulous growth investor who uses deep "scuttlebutt" research 
-11. Rakesh Jhunjhunwala Agent - The Big Bull of India
-12. Stanley Druckenmiller Agent - Macro legend who hunts for asymmetric opportunities with growth potential
-13. Warren Buffett Agent - The oracle of Omaha, seeks wonderful companies at a fair price
-14. Valuation Agent - Calculates the intrinsic value of a stock and generates trading signals
-15. Sentiment Agent - Analyzes market sentiment and generates trading signals
-16. Fundamentals Agent - Analyzes fundamental data and generates trading signals
-17. Technicals Agent - Analyzes technical indicators and generates trading signals
-18. Risk Manager - Calculates risk metrics and sets position limits
-19. Portfolio Manager - Makes final trading decisions and generates orders
+## What is in the box
 
-<img width="1042" alt="Screenshot 2025-03-22 at 6 19 07 PM" src="https://github.com/user-attachments/assets/cbae3dcf-b571-490d-b0ad-3f0f035ac0d4" />
+| Surface | What it does |
+|---------|--------------|
+| **MEGATRON desktop** (PySide6) | MEGASTOCKS research desk with per-ticker charts, analyst roster, model picker and isolated research tabs; MEGACALLS covered-call scanner; MEGACRYPTO Solana scanner |
+| **Web app** (React + FastAPI) | Flow-based dashboard to run the hedge fund and backtester, stream reasoning, and manage API keys |
+| **CLI** (`src/main.py`) | Run the analyst graph for any ticker universe |
+| **Backtester** (`src/backtester.py`) | Replay the same analysts over a date range |
+| **`v2/`** | Work-in-progress quantitative stack: point-in-time data, event studies, signals, CPCV/PBO validation, portfolio and risk modules |
 
-Note: the system does not actually make any trades.
+The research engine ships with 18 investor and specialist agents (Buffett, Munger,
+Graham, Lynch, Burry, Wood, Druckenmiller, Damodaran and others), plus valuation,
+sentiment, fundamentals, technicals, growth, risk and portfolio-manager nodes.
 
-[![Twitter Follow](https://img.shields.io/twitter/follow/virattt?style=social)](https://twitter.com/virattt)
+## Requirements
 
-## Disclaimer
+- **Python 3.11 or 3.12** (the lockfile and tests target 3.12)
+- **Poetry 2.x**
+- **Node.js 18+** and npm for the web app
+- **Ollama** (optional) for fully local LLM research
+- **Docker** (optional) for the containerized CLI
+- At least one LLM provider key, or a local Ollama model, for agent research
 
-This project is for **educational and research purposes only**.
-
-- Not intended for real trading or investment
-- No investment advice or guarantees provided
-- Creator assumes no liability for financial losses
-- Consult a financial advisor for investment decisions
-- Past performance does not indicate future results
-
-By using this software, you agree to use it solely for learning purposes.
-
-## Table of Contents
-- [How to Install](#how-to-install)
-- [How to Run](#how-to-run)
-  - [⌨️ Command Line Interface](#️-command-line-interface)
-  - [🖥️ Web Application](#️-web-application)
-- [How to Contribute](#how-to-contribute)
-- [Feature Requests](#feature-requests)
-- [License](#license)
-
-## How to Install
-
-Before you can run the AI Hedge Fund, you'll need to install it and set up your API keys. These steps are common to both the full-stack web application and command line interface.
-
-### 1. Clone the Repository
+## Install
 
 ```bash
-git clone https://github.com/virattt/ai-hedge-fund.git
-cd ai-hedge-fund
-```
-
-### 2. Set up API keys
-
-Create a `.env` file for your API keys:
-```bash
-# Create .env file for your API keys (in the root directory)
-cp .env.example .env
-```
-
-Open and edit the `.env` file to add your API keys:
-```bash
-# For running LLMs hosted by openai (gpt-4o, gpt-4o-mini, etc.)
-OPENAI_API_KEY=your-openai-api-key
-
-# For getting financial data to power the hedge fund
-FINANCIAL_DATASETS_API_KEY=your-financial-datasets-api-key
-```
-
-**Important**: You must set at least one LLM API key (e.g. `OPENAI_API_KEY`, `GROQ_API_KEY`, `ANTHROPIC_API_KEY`, or `DEEPSEEK_API_KEY`) for the hedge fund to work. 
-
-## How to Run
-
-### ⌨️ Command Line Interface
-
-You can run the AI Hedge Fund directly via terminal. This approach offers more granular control and is useful for automation, scripting, and integration purposes.
-
-<img width="992" alt="Screenshot 2025-01-06 at 5 50 17 PM" src="https://github.com/user-attachments/assets/e8ca04bf-9989-4a7d-a8b4-34e04666663b" />
-
-#### Quick Start
-
-1. Install Poetry (if not already installed):
-```bash
-curl -sSL https://install.python-poetry.org | python3 -
-```
-
-2. Install dependencies:
-```bash
+git clone https://github.com/shadow640lc-dow/ai-stocks.git
+cd ai-stocks
+cp .env.example .env     # then add the keys you actually use
 poetry install
 ```
 
-#### Run the AI Hedge Fund
+Key facts about configuration:
+
+- Research runs without broker keys. Without `FINANCIAL_DATASETS_API_KEY`, the data
+  layer falls back to Yahoo Finance where it can.
+- Set **one** LLM provider (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GROQ_API_KEY`,
+  `DEEPSEEK_API_KEY`, `GOOGLE_API_KEY`, `XAI_API_KEY`) or run against Ollama.
+- Never commit `.env`. It is gitignored, along with `.live_trading`, databases,
+  logs, caches and local backups.
+
+## Run
+
+### Desktop terminal
+
 ```bash
-poetry run python src/main.py --ticker AAPL,MSFT,NVDA
+./run_gui.sh
 ```
 
-You can also specify a `--ollama` flag to run the AI hedge fund using local LLMs.
+The first run creates `.venv-gui` and installs PySide6-Essentials. The GUI drives the
+existing engines (`megastocks.py`, `megacalls.py`, `megacrypto.py`) through the Poetry
+environment; it does not reimplement them. See
+[megatron_gui/README.md](megatron_gui/README.md) for controls and layout.
+
+### Web application
 
 ```bash
-poetry run python src/main.py --ticker AAPL,MSFT,NVDA --ollama
+./app/run.sh
 ```
 
-You can optionally specify the start and end dates to make decisions over a specific time period.
+Or manually:
 
 ```bash
-poetry run python src/main.py --ticker AAPL,MSFT,NVDA --start-date 2024-01-01 --end-date 2024-03-01
+# terminal 1 — API (from the repo root)
+poetry run uvicorn app.backend.main:app --reload --host 127.0.0.1 --port 8000
+
+# terminal 2
+cd app/frontend && npm install && npm run dev
 ```
 
-#### Run the Backtester
+- Frontend: <http://localhost:5173>
+- API docs: <http://localhost:8000/docs>
+
+### CLI
+
 ```bash
-poetry run python src/backtester.py --ticker AAPL,MSFT,NVDA
+poetry run python src/main.py --ticker NVDA,AMD,PLTR,MSFT
+poetry run python src/main.py --ticker NVDA,AMD --ollama
+poetry run python src/main.py --ticker AAPL --start-date 2024-01-01 --end-date 2024-03-01
 ```
 
-**Example Output:**
-<img width="941" alt="Screenshot 2025-01-06 at 5 47 52 PM" src="https://github.com/user-attachments/assets/00e794ea-8628-44e6-9a84-8f8a31ad3b47" />
+### Backtester
 
+```bash
+poetry run python src/backtester.py --ticker NVDA,AMD,MSFT --start-date 2024-01-01
+```
 
-Note: The `--ollama`, `--start-date`, and `--end-date` flags work for the backtester, as well!
+### Docker (CLI)
 
-### 🖥️ Web Application
+```bash
+cd docker
+./run.sh --ticker AAPL,MSFT,NVDA main
+./run.sh --ticker AAPL,MSFT,NVDA --ollama main
+./run.sh --ticker AAPL,MSFT,NVDA backtest
+```
 
-The new way to run the AI Hedge Fund is through our web application that provides a user-friendly interface. This is recommended for users who prefer visual interfaces over command line tools.
+`docker/run.sh` also supports `build`, `compose`, `ollama` and `pull <model>`.
 
-Please see detailed instructions on how to install and run the web application [here](https://github.com/virattt/ai-hedge-fund/tree/main/app).
+## Live trading safety
 
-<img width="1721" alt="Screenshot 2025-06-28 at 6 41 03 PM" src="https://github.com/user-attachments/assets/b95ab696-c9f4-416c-9ad1-51feb1f5374b" />
+Live orders are **off by default** and layered behind independent gates:
 
+1. `.live_trading` must contain `ON`; a missing file means OFF.
+2. The command must explicitly pass `--alpaca` (or the GUI's LIVE mode).
+3. `ALPACA_MODE` defaults to `paper`; keep it there unless you mean otherwise.
+4. `ALPACA_MAX_NOTIONAL` caps a single order.
+5. Each order is confirmed individually, and orders are refused after the switch is
+   turned off.
 
-## How to Contribute
+`MEGATRON_LIVE_EXECUTION=false` adds a second gate for the Solana swap path. No
+credential is required to run research, backtests or the scanners in watch-only mode.
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+## Project layout
 
-**Important**: Please keep your pull requests small and focused.  This will make it easier to review and merge.
+```
+src/            analyst graph, CLI, backtester, data, execution
+app/backend/    FastAPI service
+app/frontend/   React + Vite dashboard
+megatron_gui/   native desktop terminal
+megacalls.py    covered-call scanner
+megacrypto.py   Solana scanner launcher
+crypto_arb/     Solana arb scanner and gated executor
+v2/             quantitative research stack (work in progress)
+tests/          engine, safety and backtest tests
+docker/         container build and compose stack
+```
 
-## Feature Requests
+## Verify a checkout
 
-If you have a feature request, please open an [issue](https://github.com/virattt/ai-hedge-fund/issues) and make sure it is tagged with `enhancement`.
+```bash
+poetry run pytest                                   # engine + safety suite
+cd app/frontend && npm run build                    # typecheck + production build
+QT_QPA_PLATFORM=offscreen ../.venv-gui/bin/python -c "import megatron_gui.main"
+```
 
-## License
+## Contributing
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+Issues and pull requests are welcome at
+<https://github.com/shadow640lc-dow/ai-stocks/issues>. Keep changes focused, add tests
+for engine behavior, and update the roadmap status when you ship an item from
+[ROADMAP.md](ROADMAP.md).
+
+## Credits and license
+
+Built on [AI Hedge Fund](https://github.com/virattt/ai-hedge-fund) by Virat Singh,
+used under the MIT License. The investor personas are stylized approximations of
+public investment philosophies — not the individuals, and not endorsements.
+See [LICENSE](LICENSE).

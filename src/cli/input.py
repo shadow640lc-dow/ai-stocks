@@ -1,3 +1,4 @@
+import os
 import sys
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -43,6 +44,18 @@ def add_common_args(
     if include_ollama:
         parser.add_argument("--ollama", action="store_true", help="Use Ollama for local LLM inference")
     parser.add_argument("--model", type=str, required=False, help="Model name to use (e.g., gpt-4o)")
+    parser.add_argument(
+        "--alpaca",
+        action="store_true",
+        help="Place confirmed live orders on Alpaca after research",
+    )
+    parser.add_argument(
+        "--alpaca-mode",
+        type=str,
+        choices=["live", "paper"],
+        default=None,
+        help="Override Alpaca mode (default: ALPACA_MODE from .env, else live)",
+    )
     return parser
 
 
@@ -72,12 +85,24 @@ def parse_tickers(tickers_arg: str | None) -> list[str]:
     return [ticker.strip() for ticker in tickers_arg.split(",") if ticker.strip()]
 
 
+def _noninteractive() -> bool:
+    """True when a prompt would block a GUI child with no terminal attached."""
+    return bool(os.environ.get("MEGATRON_NONINTERACTIVE")) or not sys.stdin.isatty()
+
+
 def select_analysts(flags: dict | None = None) -> list[str]:
     if flags and flags.get("analysts_all"):
         return [a[1] for a in ANALYST_ORDER]
 
     if flags and flags.get("analysts"):
         return [a.strip() for a in flags["analysts"].split(",") if a.strip()]
+
+    if _noninteractive():
+        print(
+            f"{Fore.RED}No analysts were specified and stdin is not interactive. "
+            f"Pass --analysts or --analysts-all.{Style.RESET_ALL}"
+        )
+        sys.exit(1)
 
     choices = questionary.checkbox(
         "Select your AI analysts.",
@@ -115,8 +140,26 @@ def select_model(use_ollama: bool, model_flag: str | None = None) -> tuple[str, 
                 f"\nUsing specified model: {Fore.CYAN}{model.provider.value}{Style.RESET_ALL} - {Fore.GREEN + Style.BRIGHT}{model.model_name}{Style.RESET_ALL}\n"
             )
             return model.model_name, model.provider.value
-        else:
-            print(f"{Fore.RED}Model '{model_flag}' not found. Please select a model.{Style.RESET_ALL}")
+        if use_ollama:
+            # An installed Ollama model does not have to be in the static
+            # catalog. The GUI passes the exact tag the runtime reported, so
+            # accept it and verify availability instead of opening a picker.
+            print(
+                f"\nUsing specified Ollama model: "
+                f"{Fore.GREEN + Style.BRIGHT}{model_flag}{Style.RESET_ALL}\n"
+            )
+            if not ensure_ollama_and_model(model_flag):
+                print(f"{Fore.RED}Cannot proceed without Ollama and the selected model.{Style.RESET_ALL}")
+                sys.exit(1)
+            return model_flag, ModelProvider.OLLAMA.value
+        print(f"{Fore.RED}Model '{model_flag}' not found. Please select a model.{Style.RESET_ALL}")
+
+    if _noninteractive():
+        print(
+            f"{Fore.RED}No model was specified and stdin is not interactive. "
+            f"Pass --model NAME (for example --ollama --model qwen3-coder:30b).{Style.RESET_ALL}"
+        )
+        sys.exit(1)
 
     if use_ollama:
         print(f"{Fore.CYAN}Using Ollama for local LLM inference.{Style.RESET_ALL}")
@@ -223,6 +266,8 @@ class CLIInputs:
     margin_requirement: float
     show_reasoning: bool = False
     show_agent_graph: bool = False
+    alpaca: bool = False
+    alpaca_mode: Optional[str] = None
     raw_args: Optional[argparse.Namespace] = None
 
 
@@ -284,6 +329,8 @@ def parse_cli_inputs(
         margin_requirement=getattr(args, "margin_requirement", 0.0),
         show_reasoning=getattr(args, "show_reasoning", False),
         show_agent_graph=getattr(args, "show_agent_graph", False),
+        alpaca=getattr(args, "alpaca", False),
+        alpaca_mode=getattr(args, "alpaca_mode", None),
         raw_args=args,
     )
 

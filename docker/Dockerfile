@@ -6,14 +6,16 @@ WORKDIR /app
 ENV PYTHONPATH=/app
 
 # Install Poetry
-RUN pip install poetry==1.7.1
+# Pin the Poetry major that generated poetry.lock (lock format 2.1)
+RUN pip install poetry==2.4.1
 
 # Copy only dependency files first for better caching
-COPY pyproject.toml poetry.lock* /app/
+COPY pyproject.toml poetry.lock* README.md /app/
 
-# Configure Poetry to not use a virtual environment
+# Install dependencies only: the project itself is run from /app via PYTHONPATH,
+# and its source packages are copied in the next layer.
 RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi
+    && poetry install --no-interaction --no-ansi --no-root
 
 # Copy rest of the source code
 COPY . /app/

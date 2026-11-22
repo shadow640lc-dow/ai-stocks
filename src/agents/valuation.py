@@ -154,7 +154,12 @@ def valuation_analyst_agent(state: AgentState, agent_id: str = "valuation_analys
             continue
 
         for v in method_values.values():
-            v["gap"] = (v["value"] - market_cap) / market_cap if v["value"] > 0 else None
+            if v["value"] > 0:
+                raw_gap = (v["value"] - market_cap) / market_cap
+                # A single unstable model must not dominate the aggregate.
+                v["gap"] = max(-1.0, min(1.0, raw_gap))
+            else:
+                v["gap"] = None
 
         weighted_gap = sum(
             v["weight"] * v["gap"] for v in method_values.values() if v["gap"] is not None
@@ -328,7 +333,14 @@ def calculate_residual_income_value(
     pv_term = term_ri / (1 + cost_of_equity) ** num_years
 
     intrinsic = book_val + pv_ri + pv_term
-    return intrinsic * 0.8  # 20% margin of safety
+    result = intrinsic * 0.8  # 20% margin of safety
+
+    # The residual-income terminal value can explode when the implied book
+    # value and a single quarterly net-income figure are mismatched. Reject
+    # implausible outliers instead of letting them dominate the fair value.
+    if result <= 0 or result > market_cap * 5:
+        return 0
+    return result
 
 
 ####################################

@@ -2,6 +2,8 @@ import os
 import pytest
 from unittest.mock import Mock, patch, call
 
+import pandas as pd
+
 from src.tools.api import _make_api_request, get_prices
 
 class TestRateLimiting:
@@ -168,50 +170,37 @@ class TestRateLimiting:
         mock_sleep.assert_not_called()
 
     @patch('src.tools.api._cache')
-    @patch('src.tools.api.time.sleep')
-    @patch('src.tools.api.requests.get')
-    def test_full_integration(self, mock_get, mock_sleep, mock_cache):
-        """Test that get_prices function properly handles rate limiting."""
-        # Mock cache to return None (cache miss)
+    @patch('src.tools.api.yf.Ticker')
+    def test_get_prices_success_and_cache(self, mock_ticker_class, mock_cache):
+        """Test get_prices returns Price objects and writes them to the cache."""
+        # Mock the ticker history to return price data
+        mock_ticker = Mock()
+        mock_ticker.history.return_value = pd.DataFrame(
+            {
+                'Open': [100.0],
+                'Close': [101.0],
+                'High': [102.0],
+                'Low': [99.0],
+                'Volume': [1000],
+            },
+            index=[pd.Timestamp('2024-01-01')],
+        )
+        mock_ticker_class.return_value = mock_ticker
+
+        # Cache should miss so the function fetches from the (mocked) API
         mock_cache.get_prices.return_value = None
-        
-        # Setup mock responses: first 429, then 200 with valid data
-        mock_429_response = Mock()
-        mock_429_response.status_code = 429
-        
-        mock_200_response = Mock()
-        mock_200_response.status_code = 200
-        mock_200_response.json.return_value = {
-            "ticker": "AAPL",
-            "prices": [
-                {
-                    "time": "2024-01-01T00:00:00Z",
-                    "open": 100.0,
-                    "close": 101.0,
-                    "high": 102.0,
-                    "low": 99.0,
-                    "volume": 1000
-                }
-            ]
-        }
-        
-        mock_get.side_effect = [mock_429_response, mock_200_response]
-        
-        # Set environment variable for API key
-        with patch.dict(os.environ, {"FINANCIAL_DATASETS_API_KEY": "test-key"}):
-            # Call get_prices
-            result = get_prices("AAPL", "2024-01-01", "2024-01-02")
-        
+
+        result = get_prices("AAPL", "2024-01-01", "2024-01-02")
+
         # Verify the function succeeded and returned data
         assert len(result) == 1
         assert result[0].open == 100.0
         assert result[0].close == 101.0
-        
-        # Verify rate limiting behavior
-        assert mock_get.call_count == 2
-        mock_sleep.assert_called_once_with(60)
-        
-        # Verify cache operations
+        assert result[0].high == 102.0
+        assert result[0].low == 99.0
+        assert result[0].volume == 1000
+
+        # Verify the cache was checked and then written
         mock_cache.get_prices.assert_called_once()
         mock_cache.set_prices.assert_called_once()
 

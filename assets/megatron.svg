@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="48" y1="24" x2="472" y2="500" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#071B0F"/>
+      <stop offset="0.55" stop-color="#020805"/>
+      <stop offset="1" stop-color="#010403"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="76" y1="48" x2="444" y2="468" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C6FF3D"/>
+      <stop offset="0.48" stop-color="#39FF88"/>
+      <stop offset="1" stop-color="#55FFC8"/>
+    </linearGradient>
+    <linearGradient id="glyph" x1="142" y1="152" x2="367" y2="365" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C6FF3D"/>
+      <stop offset="0.5" stop-color="#39FF88"/>
+      <stop offset="1" stop-color="#55FFC8"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" stroke="#39FF88" stroke-opacity="0.16" stroke-width="1"/>
+    </pattern>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#bg)"/>
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#grid)"/>
+  <rect x="18" y="18" width="476" height="476" rx="106" stroke="url(#edge)" stroke-width="4" stroke-opacity="0.9"/>
+
+  <!-- circuit rails -->
+  <g stroke="#39FF88" stroke-opacity="0.42" stroke-width="2">
+    <path d="M58 146H108V111H137"/>
+    <path d="M58 366H108V401H137"/>
+    <path d="M454 146H404V111H375"/>
+    <path d="M454 366H404V401H375"/>
+    <path d="M78 256H112"/>
+    <path d="M434 256H400"/>
+  </g>
+  <g fill="#39FF88">
+    <circle cx="137" cy="111" r="5"/>
+    <circle cx="137" cy="401" r="5"/>
+    <circle cx="375" cy="111" r="5"/>
+    <circle cx="375" cy="401" r="5"/>
+    <circle cx="112" cy="256" r="4" fill-opacity="0.8"/>
+    <circle cx="400" cy="256" r="4" fill-opacity="0.8"/>
+  </g>
+
+  <!-- corner brackets -->
+  <g stroke="#39FF88" stroke-width="4" stroke-linecap="square" stroke-opacity="0.72">
+    <path d="M70 113V72H111"/>
+    <path d="M442 113V72H401"/>
+    <path d="M70 399V440H111"/>
+    <path d="M442 399V440H401"/>
+  </g>
+
+  <!-- terminal M -->
+  <path d="M137 366V148L256 278L375 148V366" stroke="#00170A" stroke-width="54" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M137 366V148L256 278L375 148V366" stroke="url(#glyph)" stroke-width="30" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+
+  <!-- cursor underscore -->
+  <rect x="199" y="391" width="115" height="10" rx="5" fill="#39FF88" fill-opacity="0.84" filter="url(#soft)"/>
+  <circle cx="184" cy="396" r="5" fill="#C6FF3D"/>
+  <circle cx="330" cy="396" r="5" fill="#55FFC8"/>
+</svg>

@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "ai-hedge-fund"
 version = "2026.7.3"
-description = "An AI-powered hedge fund that uses multiple agents to make trading decisions"
-authors = ["Your Name <your.email@example.com>"]
+description = "MEGATRON: an AI hedge fund desk with a desktop terminal, web app, CLI and backtester"
+authors = ["Osman Bolanos"]
 readme = "README.md"
 packages = [
     { include = "src", from = "." },

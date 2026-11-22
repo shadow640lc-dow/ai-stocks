@@ -1,3 +1,4 @@
+import os
 import sys
 
 from dotenv import load_dotenv
@@ -15,6 +16,7 @@ from src.utils.visualize import save_graph_as_png
 from src.cli.input import (
     parse_cli_inputs,
 )
+from src.database.database import init_database
 
 import argparse
 from datetime import datetime
@@ -25,6 +27,10 @@ import json
 load_dotenv()
 
 init(autoreset=True)
+
+# The decision log is written after every run; make sure the local schema
+# exists before the portfolio manager tries to insert into it.
+init_database()
 
 
 def parse_hedge_fund_response(response):
@@ -55,6 +61,23 @@ def run_hedge_fund(
 ):
     # Start progress tracking
     progress.start()
+    gui_progress = None
+    if os.environ.get("MEGATRON_GUI"):
+        def gui_progress(agent_name, ticker, status, analysis, timestamp):
+            print(
+                "@@MEGATRON_PROGRESS@@ "
+                + json.dumps(
+                    {
+                        "agent": agent_name,
+                        "ticker": ticker,
+                        "status": status,
+                        "timestamp": timestamp,
+                    }
+                ),
+                flush=True,
+            )
+
+        progress.register_handler(gui_progress)
 
     try:
         # Build workflow (default to all analysts when none provided)
@@ -88,6 +111,8 @@ def run_hedge_fund(
             "analyst_signals": final_state["data"]["analyst_signals"],
         }
     finally:
+        if gui_progress is not None:
+            progress.unregister_handler(gui_progress)
         # Stop progress tracking
         progress.stop()
 
@@ -128,6 +153,108 @@ def create_workflow(selected_analysts=None):
 
     workflow.set_entry_point("start_node")
     return workflow
+
+
+def execute_decisions_with_alpaca(
+    result: dict,
+    mode: str | None,
+    tickers: list[str],
+) -> None:
+    """Place confirmed orders for AI Hedge Fund decisions via Alpaca."""
+    from src.execution.alpaca_executor import (
+        execute_hedge_fund_decisions,
+        estimate_notional,
+    )
+    from src.utils.alpaca_broker import AlpacaBroker, AlpacaError
+
+    decisions = result.get("decisions") or {}
+
+    prices: dict[str, float] = {}
+    for ticker in tickers:
+        try:
+            price = float(
+                result["analyst_signals"]["risk_management_agent"][ticker][
+                    "current_price"
+                ]
+            )
+        except (KeyError, TypeError, ValueError):
+            price = 0.0
+        if price > 0:
+            prices[ticker] = price
+
+    broker = AlpacaBroker(mode=mode)
+
+    print()
+    print(Fore.YELLOW + "⚠  NEXT: ALPACA LIVE EXECUTION (confirmed)" + Style.RESET_ALL)
+    print(
+        Fore.RED
+        + "⚠  You will be asked to approve each order. This places REAL money."
+        + Style.RESET_ALL
+    )
+    print(
+        Fore.MAGENTA
+        + f"⚠  Target account: {broker.label}"
+        + Style.RESET_ALL
+    )
+    print(
+        Fore.MAGENTA
+        + f"⚠  Notional price source: {'analyst live prices' if prices else 'MISSING'} "
+        + f"({len(prices)}/{len(tickers)} tickers)"
+        + Style.RESET_ALL
+    )
+
+    def confirm_order(
+        ticker: str,
+        action: str,
+        side: str,
+        qty: int,
+        notional: float,
+    ) -> bool:
+        message = (
+            f"\n  Place {side.upper()} {qty} x {ticker} "
+            f"({action.upper()})"
+            + (f"  est ${notional:,.0f}" if notional else "")
+            + "?"
+        )
+        if os.environ.get("MEGATRON_GUI"):
+            # The desktop app renders this as a native Yes/No dialog and
+            # writes the answer back on stdin. Default remains No.
+            print(
+                "@@MEGATRON_PROMPT@@ "
+                + json.dumps({"kind": "order_approval", "message": message}),
+                flush=True,
+            )
+            try:
+                answer = sys.stdin.readline().strip().lower()
+            except Exception:
+                return False
+            return answer in {"y", "yes"}
+        return bool(questionary.confirm(message, default=False).ask())
+
+    try:
+        results = execute_hedge_fund_decisions(
+            decisions=decisions,
+            broker=broker,
+            confirm=confirm_order,
+            prices=prices,
+        )
+    except AlpacaError as exc:
+        print(Fore.RED + f"\n  ✖ {exc}" + Style.RESET_ALL)
+        return
+
+    placed = [r for r in results if r["status"] == "placed"]
+    print()
+    print(
+        Fore.GREEN
+        + f"  {len(placed)} order(s) submitted to Alpaca "
+        + Style.RESET_ALL
+        + f"({broker.label})"
+    )
+    for order in placed:
+        print(
+            f"    ✓ {order['ticker']} {order['action'].upper()} {order['qty']} "
+            f"id={order['order_id']} status={order['order_status']}"
+        )
 
 
 if __name__ == "__main__":
@@ -177,3 +304,10 @@ if __name__ == "__main__":
         model_provider=inputs.model_provider,
     )
     print_trading_output(result)
+
+    if inputs.alpaca:
+        execute_decisions_with_alpaca(
+            result=result,
+            mode=inputs.alpaca_mode,
+            tickers=tickers,
+        )

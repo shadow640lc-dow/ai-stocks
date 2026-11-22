@@ -15,14 +15,7 @@ from src.utils.analysts import get_agents_list
 
 router = APIRouter(prefix="/hedge-fund")
 
-@router.post(
-    path="/run",
-    responses={
-        200: {"description": "Successful response with streaming updates"},
-        400: {"model": ErrorResponse, "description": "Invalid request parameters"},
-        500: {"model": ErrorResponse, "description": "Internal server error"},
-    },
-)
+@router.post("/run")
 async def run(request_data: HedgeFundRequest, request: Request, db: Session = Depends(get_db)):
     try:
         # Hydrate API keys from database if not provided
@@ -159,14 +152,7 @@ async def run(request_data: HedgeFundRequest, request: Request, db: Session = De
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred while processing the request: {str(e)}")
 
-@router.post(
-    path="/backtest",
-    responses={
-        200: {"description": "Successful response with streaming backtest updates"},
-        400: {"model": ErrorResponse, "description": "Invalid request parameters"},
-        500: {"model": ErrorResponse, "description": "Internal server error"},
-    },
-)
+@router.post("/backtest")
 async def backtest(request_data: BacktestRequest, request: Request, db: Session = Depends(get_db)):
     """Run a continuous backtest over a time period with streaming updates."""
     try:

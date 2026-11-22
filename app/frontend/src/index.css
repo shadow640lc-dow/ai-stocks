@@ -303,13 +303,13 @@
   position: absolute;
   inset: 0;
   border-radius: 0.5rem;
-  background: linear-gradient(90deg, 
+  background: linear-gradient(90deg,
     #2383F4, #5e61e7, #8F00FF, #7831d4, #2383F4
   );
   background-size: 200% 100%;
   animation: gradientFlow 3s linear infinite;
-  -webkit-mask: 
-    linear-gradient(#fff 0 0) content-box, 
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -317,17 +317,13 @@
 }
 
 @keyframes gradientFlow {
-  0% {
-    background-position: 0% 0%;
-  }
-  100% {
-    background-position: 200% 0%;
-  }
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
 }
 
 /* Gradient animation for in-progress elements */
 .gradient-animation {
-  background: linear-gradient(90deg, 
+  background: linear-gradient(90deg,
     #2383F4, #5e61e7, #8F00FF, #7831d4, #2383F4
   );
   background-size: 200% 100%;
@@ -336,7 +332,7 @@
 
 /* Gradient text animation */
 .gradient-text {
-  background: linear-gradient(90deg, 
+  background: linear-gradient(90deg,
     #2383F4, #5e61e7, #8F00FF, #7831d4, #2383F4
   );
   background-size: 200% 100%;
@@ -349,6 +345,102 @@
 /* Remove white lines between ReactFlow Controls buttons */
 .react-flow__controls .react-flow__controls-button {
   border-right: none !important;
+}
+
+.react-flow__controls .react-flow__controls-button + .react-flow__controls-button {
+  border-left: none !important;
+}
+
+/* Fade-in animation for output panels */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Pulse animation for status indicators */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Fade-in up animation for content sections */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+/* Slide-in from left */
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-slideInLeft {
+  animation: slideInLeft 0.3s ease-out forwards;
+}
+
+/* Slide-in from right */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.3s ease-out forwards;
+}
+
+/* Shimmer loading effect */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Staggered animation for lists */
+@keyframes staggerIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-staggerIn {
+  animation: staggerIn 0.3s ease-out forwards;
+}
+
+/* Spinning loader */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Rotate animation */
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.rotate {
+  animation: rotate 4s linear infinite;
 }
 
 .react-flow__controls .react-flow__controls-button + .react-flow__controls-button {

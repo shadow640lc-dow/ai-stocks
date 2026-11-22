@@ -16,20 +16,18 @@ def extract_base_agent_key(unique_id: str) -> str:
     """
     Extract the base agent key from a unique node ID.
     
-    Args:
-        unique_id: The unique node ID with suffix (e.g., "warren_buffett_abc123")
-    
-    Returns:
-        The base agent key (e.g., "warren_buffett")
+    Node IDs use a "{base}_agent" suffix convention
+    (e.g. "michael_burry_agent" -> "michael_burry"). A legacy
+    fallback also accepts a trailing 6-character suffix.
     """
-    # For agent nodes, remove the last underscore and 6-character suffix
-    parts = unique_id.split('_')
+    if unique_id.endswith("_agent"):
+        return unique_id[: -len("_agent")]
+    parts = unique_id.split("_")
     if len(parts) >= 2:
         last_part = parts[-1]
-        # If the last part is a 6-character alphanumeric string, it's likely our suffix
         if len(last_part) == 6 and re.match(r'^[a-z0-9]+$', last_part):
-            return '_'.join(parts[:-1])
-    return unique_id  # Return original if no suffix pattern found
+            return "_".join(parts[:-1])
+    return unique_id
 
 
 # Helper function to create the agent graph

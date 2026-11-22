@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timezone
 from rich.console import Console
 from rich.live import Live
@@ -32,13 +33,17 @@ class AgentProgress:
     def start(self):
         """Start the progress display."""
         if not self.started:
-            self.live.start()
+            # The desktop app receives structured progress sentinels and must
+            # not get Rich's Live terminal redraws mixed into that stream.
+            if not os.environ.get("MEGATRON_GUI"):
+                self.live.start()
             self.started = True
 
     def stop(self):
         """Stop the progress display."""
         if self.started:
-            self.live.stop()
+            if not os.environ.get("MEGATRON_GUI"):
+                self.live.stop()
             self.started = False
 
     def update_status(self, agent_name: str, ticker: Optional[str] = None, status: str = "", analysis: Optional[str] = None):
@@ -106,7 +111,7 @@ class AgentProgress:
             status_text.append(f"{agent_display:<20}", style=Style(bold=True))
 
             if ticker:
-                status_text.append(f"[{ticker}] ", style=Style(color="cyan"))
+                status_text.append(f"[{ticker}] ", style=Style(color="dark_orange"))
             status_text.append(status, style=style)
 
             self.table.add_row(status_text)

@@ -191,6 +191,10 @@ def get_model(model_name: str, model_provider: ModelProvider, api_keys: dict = N
         return ChatOllama(
             model=model_name,
             base_url=base_url,
+            # Keep the 30B model resident across sequential analyst calls.
+            # Default Ollama keep_alive is 5 minutes; a full roster run and
+            # market-data fetches can exceed that and force an SSD reload.
+            keep_alive=os.getenv("MEGATRON_OLLAMA_KEEP_ALIVE", "30m"),
         )
     elif model_provider == ModelProvider.OPENROUTER:
         api_key = (api_keys or {}).get("OPENROUTER_API_KEY") or os.getenv("OPENROUTER_API_KEY")

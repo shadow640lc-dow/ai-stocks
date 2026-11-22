@@ -10,13 +10,7 @@ router = APIRouter(prefix="/language-models")
 # Initialize Ollama service
 ollama_service = OllamaService()
 
-@router.get(
-    path="/",
-    responses={
-        200: {"description": "List of available language models"},
-        500: {"model": ErrorResponse, "description": "Internal server error"},
-    },
-)
+@router.get("/")
 async def get_language_models():
     """Get the list of available cloud-based and Ollama language models."""
     try:
@@ -31,13 +25,7 @@ async def get_language_models():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve models: {str(e)}")
 
-@router.get(
-    path="/providers",
-    responses={
-        200: {"description": "List of available model providers"},
-        500: {"model": ErrorResponse, "description": "Internal server error"},
-    },
-)
+@router.get("/providers")
 async def get_language_model_providers():
     """Get the list of available model providers with their models grouped."""
     try:

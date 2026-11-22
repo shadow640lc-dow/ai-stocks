@@ -1,16 +1,42 @@
 # Git
 .git
+.github
 .gitignore
 
-# Poetry
+# Python environments and caches
 .venv
+.venv-gui
 __pycache__/
 *.py[cod]
-*$py.class
 .pytest_cache/
+.megatron_cache/
 
-# Environment
+# Environment and trading state
 .env
+.live_trading
+*.db
+*.log
+logs/
+
+# Frontend dependencies and build output
+node_modules/
+app/frontend/dist/
+app/frontend/dist-ssr/
+
+# Local runtime data
+crypto_arb/*.csv
+covered_call_scan.txt
+
+# Local editor backups
+*.py.before_*
+*.py.before-*
+*.py.pre_*
+*.py.backup
+*.py.backup-*
+*.py.working
+*.py.PHASE2C_WORKING
+*.py.phase3c-backup
+*.py.v2-backup
 
 # IDEs and editors
 .idea/
@@ -18,11 +44,6 @@ __pycache__/
 *.swp
 *.swo
 
-# Logs and data
-logs/
-data/
-*.log
-
 # OS specific
 .DS_Store
-Thumbs.db 
+Thumbs.db

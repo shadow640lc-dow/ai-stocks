@@ -20,12 +20,40 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual Environment
+# Virtual environments
 venv/
 ENV/
+.venv/
+.venv-gui/
 
-# Environment Variables
+# Environment variables (never publish keys)
 .env
+!.env.example
+
+# Runtime / trading state (stays local)
+.live_trading
+.megatron_cache/
+logs/
+*.log
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+crypto_arb/*.csv
+covered_call_scan.txt
+
+# Local editor backups of engine files
+*.py.before_*
+*.py.before-*
+*.py.pre_*
+*.py.backup
+*.py.backup-*
+*.py.working
+*.py.PHASE2C_WORKING
+*.py.phase3c-backup
+*.py.v2-backup
 
 # IDE
 .idea/
@@ -41,36 +69,22 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# graph
-*.png
-
-# Txt files
-*.txt
-
-# PDF files
-*.pdf
-
 # Frontend
-node_modules
+node_modules/
+app/frontend/dist/
+app/frontend/dist-ssr/
 
 # Outputs
 outputs/
 /scratchpad/
 
-# Database files (users will have their own local databases)
-*.db
-*.db-journal
-*.db-wal
-*.db-shm
-*.sqlite
-*.sqlite3
+# Test / tool caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
 
-# Alembic (keep migration files, but ignore generated/cache files)
+# Alembic generated cache files
 app/backend/alembic/versions/__pycache__/
 
-# AI Hedge Fund local database
-ai_hedge_fund.db
-
-# Python cache
-__pycache__/
-*.pyc
+# Keep the desktop icons (the PNGs under assets/ are part of the app)
+!assets/*.png

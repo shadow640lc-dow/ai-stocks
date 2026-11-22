@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=MEGATRON
+GenericName=Trading Desk
+Comment=Unified terminal for AI hedge fund, covered calls and Solana
+Exec=bash /home/megatron26/AI-KNOWLEDGE/ai-stocks/run_gui.sh
+Path=/home/megatron26/AI-KNOWLEDGE/ai-stocks
+Icon=/home/megatron26/AI-KNOWLEDGE/ai-stocks/assets/megatron.png
+Terminal=false
+Categories=Office;Finance;
+Keywords=trading;stocks;options;solana;crypto;
+StartupWMClass=MEGATRON
+StartupNotify=true

@@ -28,7 +28,7 @@ export function OutputNodeStatus({
   const isLocallyProcessing = isProcessing; // Connected agents are running
   const isGloballyProcessing = !isProcessing && isAnyAgentRunning; // Other agents running
   const hasGradientAnimation = isLocallyProcessing || isGloballyProcessing;
-  const isClickable = isOutputAvailable && !isLocallyProcessing && !isGloballyProcessing;
+  const isClickable = isOutputAvailable && !isLocallyProcessing && !isGloballyProcessing && isConnected;
   
   // Determine display text based on current state
   let displayText: string;
