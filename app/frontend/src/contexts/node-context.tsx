@@ -99,7 +99,7 @@ export function NodeProvider({ children }: { children: ReactNode }) {
 
   const updateAgentNode = useCallback((flowId: string | null, nodeId: string, data: Partial<AgentNodeData> | NodeStatus) => {
     const compositeKey = createCompositeKey(flowId, nodeId);
-    
+
     // Handle string status shorthand (just passing a status string)
     if (typeof data === 'string') {
       setAgentNodeData(prev => {
@@ -119,18 +119,18 @@ export function NodeProvider({ children }: { children: ReactNode }) {
     // Handle data object - full update
     setAgentNodeData(prev => {
       const existingNode = prev[compositeKey] || { ...DEFAULT_AGENT_NODE_STATE };
-      
+
       const newMessages = [...existingNode.messages];
-      
+
       // Add message to history if it's new - use more robust checking
       if (data.message && data.timestamp) {
         // Check if this exact message already exists (prevent duplicates)
-        const messageExists = newMessages.some(msg => 
-          msg.timestamp === data.timestamp && 
+        const messageExists = newMessages.some(msg =>
+          msg.timestamp === data.timestamp &&
           msg.message === data.message &&
           msg.ticker === data.ticker
         );
-        
+
         if (!messageExists) {
           const ticker = data.ticker || null;
 
@@ -149,14 +149,14 @@ export function NodeProvider({ children }: { children: ReactNode }) {
           newMessages.push(messageItem);
         }
       }
-      
+
       const updatedNode = {
         ...existingNode,
         ...data,
         messages: newMessages,
         lastUpdated: Date.now()
       };
-      
+
       return {
         ...prev,
         [compositeKey]: updatedNode
@@ -166,10 +166,10 @@ export function NodeProvider({ children }: { children: ReactNode }) {
 
   const updateAgentNodes = useCallback((flowId: string | null, nodeIds: string[], status: NodeStatus) => {
     if (nodeIds.length === 0) return;
-    
+
     setAgentNodeData(prev => {
       const newStates = { ...prev };
-      
+
       nodeIds.forEach(id => {
         const compositeKey = createCompositeKey(flowId, id);
         newStates[compositeKey] = {
@@ -178,14 +178,14 @@ export function NodeProvider({ children }: { children: ReactNode }) {
           lastUpdated: Date.now()
         };
       });
-      
+
       return newStates;
     });
   }, []);
 
   const setAgentModel = useCallback((flowId: string | null, nodeId: string, model: LanguageModel | null) => {
     const compositeKey = createCompositeKey(flowId, nodeId);
-    
+
     setAgentModels(prev => {
       if (model === null) {
         // Remove the agent model if setting to null
@@ -215,17 +215,17 @@ export function NodeProvider({ children }: { children: ReactNode }) {
         Object.entries(agentModels).filter(([key]) => !key.includes(':'))
       );
     }
-    
+
     const flowPrefix = `${flowId}:`;
     const currentFlowModels: Record<string, LanguageModel | null> = {};
-    
+
     Object.entries(agentModels).forEach(([compositeKey, model]) => {
       if (compositeKey.startsWith(flowPrefix)) {
         const nodeId = compositeKey.substring(flowPrefix.length);
         currentFlowModels[nodeId] = model;
       }
     });
-    
+
     return currentFlowModels;
   }, [agentModels]);
 
@@ -256,7 +256,7 @@ export function NodeProvider({ children }: { children: ReactNode }) {
         });
         return newData;
       });
-      
+
       // Clear output data for specified flow
       setOutputNodeData(prev => {
         const rest = { ...prev };
@@ -264,7 +264,7 @@ export function NodeProvider({ children }: { children: ReactNode }) {
         return rest;
       });
     }
-    
+
     // Note: We don't reset agentModels here as users would want to keep their model selections
   }, []);
 
@@ -304,7 +304,7 @@ export function NodeProvider({ children }: { children: ReactNode }) {
         return newData;
       });
     }
-    
+
     // Note: We don't touch output data or agent models - only reset processing statuses
   }, []);
 
@@ -313,7 +313,7 @@ export function NodeProvider({ children }: { children: ReactNode }) {
     // Export agent data for specified flow
     const currentFlowAgentData: Record<string, AgentNodeData> = {};
     const flowPrefix = flowId ? `${flowId}:` : '';
-    
+
     Object.entries(agentNodeData).forEach(([compositeKey, data]) => {
       if (flowId) {
         if (compositeKey.startsWith(flowPrefix)) {
@@ -329,7 +329,7 @@ export function NodeProvider({ children }: { children: ReactNode }) {
     });
 
     // Export output data for specified flow
-    const currentFlowOutputData = flowId 
+    const currentFlowOutputData = flowId
       ? outputNodeData[flowId] || null
       : outputNodeData['default'] || null;
 
@@ -379,17 +379,17 @@ export function NodeProvider({ children }: { children: ReactNode }) {
         Object.entries(agentNodeData).filter(([key]) => !key.includes(':'))
       );
     }
-    
+
     const flowPrefix = `${flowId}:`;
     const currentFlowData: Record<string, AgentNodeData> = {};
-    
+
     Object.entries(agentNodeData).forEach(([compositeKey, data]) => {
       if (compositeKey.startsWith(flowPrefix)) {
         const nodeId = compositeKey.substring(flowPrefix.length);
         currentFlowData[nodeId] = data;
       }
     });
-    
+
     return currentFlowData;
   }, [agentNodeData]);
 
@@ -398,7 +398,7 @@ export function NodeProvider({ children }: { children: ReactNode }) {
       // If no flow ID, return 'default' data for backward compatibility
       return outputNodeData['default'] || null;
     }
-    
+
     return outputNodeData[flowId] || null;
   }, [outputNodeData]);
 
@@ -431,4 +431,4 @@ export function NodeProvider({ children }: { children: ReactNode }) {
   );
 }
 
- 
+
