@@ -11,12 +11,17 @@ const config: Config = {
   theme: {
     fontFamily: {
       sans: [
+        'geist',
         'Inter',
+        'system-ui',
         'sans-serif'
       ],
       mono: [
-        'Inter',
-        'sans-serif'
+        'geist-mono',
+        'ui-monospace',
+        'SFMono-Regular',
+        'Menlo',
+        'monospace'
       ]
     },
     extend: {
