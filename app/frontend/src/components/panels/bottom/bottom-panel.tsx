@@ -1,4 +1,4 @@
-import { useLayoutContext } from '@/contexts/layout-context';
+import { useLayoutContext } from '@/contexts/context-hooks';
 import { useResizable } from '@/hooks/use-resizable';
 import { cn } from '@/lib/utils';
 import { FileText, X } from 'lucide-react';

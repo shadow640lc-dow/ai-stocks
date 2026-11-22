@@ -5,7 +5,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { useNodeContext } from '@/contexts/node-context';
+import { useNodeContext } from '@/contexts/context-hooks';
 import { formatTimeFromTimestamp } from '@/utils/date-utils';
 import { formatContent } from '@/utils/text-utils';
 import { AlignJustify, Copy, Loader2 } from 'lucide-react';
@@ -55,7 +55,7 @@ export function AgentOutputDialog({
       if (msg.analysis && Object.keys(msg.analysis).length > 0) {
         // Filter out null values before adding to our accumulated decisions
         const validDecisions = Object.entries(msg.analysis)
-          .filter(([_, value]) => value !== null && value !== undefined)
+          .filter(([, value]) => value !== null && value !== undefined)
           .reduce((obj, [key, value]) => {
             obj[key] = value;
             return obj;

@@ -18,9 +18,10 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useFlowContext } from '@/contexts/flow-context';
-import { useLayoutContext } from '@/contexts/layout-context';
-import { useNodeContext } from '@/contexts/node-context';
+import { ModelProvider } from '@/services/types';
+import { useFlowContext } from '@/contexts/context-hooks';
+import { useLayoutContext } from '@/contexts/context-hooks';
+import { useNodeContext } from '@/contexts/context-hooks';
 import { useFlowConnection } from '@/hooks/use-flow-connection';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { useNodeState } from '@/hooks/use-node-state';
@@ -190,7 +191,7 @@ export function PortfolioStartNode({
         agentModels.push({
           agent_id: node.id,
           model_name: model.model_name,
-          model_provider: model.provider as any
+          model_provider: model.provider as ModelProvider
         });
       }
     }

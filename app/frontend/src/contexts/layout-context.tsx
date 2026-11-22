@@ -1,23 +1,15 @@
 import { SidebarStorageService } from '@/services/sidebar-storage';
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 
-interface LayoutContextType {
+import { LayoutContext } from './context-hooks';
+
+export interface LayoutContextType {
   isBottomCollapsed: boolean;
   expandBottomPanel: () => void;
   collapseBottomPanel: () => void;
   toggleBottomPanel: () => void;
   setBottomPanelTab: (tab: string) => void;
   currentBottomTab: string;
-}
-
-const LayoutContext = createContext<LayoutContextType | null>(null);
-
-export function useLayoutContext() {
-  const context = useContext(LayoutContext);
-  if (!context) {
-    throw new Error('useLayoutContext must be used within a LayoutProvider');
-  }
-  return context;
 }
 
 interface LayoutProviderProps {

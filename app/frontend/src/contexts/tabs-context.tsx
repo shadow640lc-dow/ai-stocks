@@ -1,5 +1,7 @@
 import { Flow } from '@/types/flow';
-import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useState } from 'react';
+
+import { TabsContext } from './context-hooks';
 
 // Define tab types
 export type TabType = 'flow' | 'settings';
@@ -12,7 +14,7 @@ export interface Tab {
   // For flow tabs
   flow?: Flow;
   // For other tabs (settings, etc.)
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Serializable version of Tab for localStorage (without content)
@@ -21,10 +23,10 @@ interface SerializableTab {
   type: TabType;
   title: string;
   flow?: Flow;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
-interface TabsContextType {
+export interface TabsContextType {
   tabs: Tab[];
   activeTabId: string | null;
   openTab: (tab: Omit<Tab, 'id'> & { id?: string }) => void;
@@ -36,16 +38,6 @@ interface TabsContextType {
   reorderTabs: (fromIndex: number, toIndex: number) => void;
   updateTabTitle: (tabId: string, newTitle: string) => void;
   updateFlowTabTitle: (flowId: number, newTitle: string) => void;
-}
-
-const TabsContext = createContext<TabsContextType | null>(null);
-
-export function useTabsContext() {
-  const context = useContext(TabsContext);
-  if (!context) {
-    throw new Error('useTabsContext must be used within a TabsProvider');
-  }
-  return context;
 }
 
 interface TabsProviderProps {

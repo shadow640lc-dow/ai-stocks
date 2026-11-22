@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { useTabsContext } from '@/contexts/tabs-context';
+import { useTabsContext } from '@/contexts/context-hooks';
 import { cn } from '@/lib/utils';
 import { FileText, Layout, Settings, X } from 'lucide-react';
 import { ReactNode, useState } from 'react';

@@ -27,6 +27,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { extractBaseAgentKey } from '@/data/node-mappings';
+import { OutputNodeData } from '@/contexts/node-context';
 import { createAgentDisplayNames } from '@/utils/text-utils';
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -35,11 +36,12 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 interface InvestmentReportDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  outputNodeData: any;
+  outputNodeData: OutputNodeData | null;
   connectedAgentIds: Set<string>;
 }
 
 type ActionType = 'long' | 'short' | 'hold';
+type BadgeVariant = 'secondary' | 'destructive' | 'warning' | 'success' | 'outline';
 
 export function InvestmentReportDialog({
   isOpen,
@@ -76,7 +78,7 @@ export function InvestmentReportDialog({
                    signal === 'bearish' ? 'destructive' : 'outline';
 
     return (
-      <Badge variant={variant as any}>
+      <Badge variant={variant as BadgeVariant}>
         {signal}
       </Badge>
     );
@@ -89,7 +91,7 @@ export function InvestmentReportDialog({
     else variant = 'outline';
     const rounded = Number(confidence.toFixed(1));
     return (
-      <Badge variant={variant as any}>
+      <Badge variant={variant as BadgeVariant}>
         {rounded}%
       </Badge>
     );
@@ -150,7 +152,7 @@ export function InvestmentReportDialog({
                             </div>
                           </TableCell>
                           <TableCell>{decision.quantity}</TableCell>
-                          <TableCell>{getConfidenceBadge(decision.confidence)}</TableCell>
+                          <TableCell>{getConfidenceBadge(decision.confidence ?? 0)}</TableCell>
                         </TableRow>
                       );
                     })}
@@ -192,8 +194,8 @@ export function InvestmentReportDialog({
                                     {agentDisplayNames.get(agent) || agent}
                                   </CardTitle>
                                   <div className="flex items-center gap-2">
-                                    {getSignalBadge(signal.signal)}
-                                    {getConfidenceBadge(signal.confidence)}
+                                    {getSignalBadge(signal.signal ?? 'neutral')}
+                                    {getConfidenceBadge(signal.confidence ?? 0)}
                                   </div>
                                 </div>
                               </CardHeader>

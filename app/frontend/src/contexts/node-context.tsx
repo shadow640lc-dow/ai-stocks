@@ -1,5 +1,14 @@
 import { LanguageModel } from '@/data/models';
-import { createContext, ReactNode, useCallback, useContext, useState } from 'react';
+import type {
+  AnalystSignal,
+  BacktestPerformanceMetrics,
+  BacktestPeriodResult,
+  BacktestPortfolioPosition,
+  TradeDecision,
+} from '@/services/types';
+import { ReactNode, useCallback, useState } from 'react';
+
+import { NodeContext } from './context-hooks';
 
 export type NodeStatus = 'IDLE' | 'IN_PROGRESS' | 'COMPLETE' | 'ERROR';
 
@@ -20,27 +29,22 @@ export interface AgentNodeData {
   messages: MessageItem[];
   timestamp?: string;
   analysis: string | null;
-  backtestResults?: any[];
+  detail?: string;
+  backtestResults?: BacktestPeriodResult[];
 }
 
 // Data structure for the output node data (from complete event)
 export interface OutputNodeData {
-  decisions: Record<string, any>;
-  analyst_signals: Record<string, any>;
+  decisions: Record<string, TradeDecision>;
+  analyst_signals: Record<string, Record<string, AnalystSignal>>;
+  current_prices?: Record<string, number>;
+  timestamp?: string;
   // Backtest-specific fields
-  performance_metrics?: {
-    sharpe_ratio?: number;
-    sortino_ratio?: number;
-    max_drawdown?: number;
-    max_drawdown_date?: string;
-    long_short_ratio?: number;
-    gross_exposure?: number;
-    net_exposure?: number;
-  };
+  performance_metrics?: BacktestPerformanceMetrics;
   final_portfolio?: {
     cash: number;
     margin_used: number;
-    positions: Record<string, any>;
+    positions: Record<string, BacktestPortfolioPosition>;
   };
   total_days?: number;
 }
@@ -60,7 +64,7 @@ function createCompositeKey(flowId: string | null, nodeId: string): string {
   return flowId ? `${flowId}:${nodeId}` : nodeId;
 }
 
-interface NodeContextType {
+export interface NodeContextType {
   agentNodeData: Record<string, AgentNodeData>;
   outputNodeData: OutputNodeData | null;
   agentModels: Record<string, LanguageModel | null>;
@@ -84,8 +88,6 @@ interface NodeContextType {
   getAgentNodeDataForFlow: (flowId: string | null) => Record<string, AgentNodeData>;
   getOutputNodeDataForFlow: (flowId: string | null) => OutputNodeData | null;
 }
-
-const NodeContext = createContext<NodeContextType | undefined>(undefined);
 
 export function NodeProvider({ children }: { children: ReactNode }) {
   // Use composite keys for flow-aware agent node data storage
@@ -187,7 +189,8 @@ export function NodeProvider({ children }: { children: ReactNode }) {
     setAgentModels(prev => {
       if (model === null) {
         // Remove the agent model if setting to null
-        const { [compositeKey]: removed, ...rest } = prev;
+        const rest = { ...prev };
+        delete rest[compositeKey];
         return rest;
       } else {
         // Set the agent model
@@ -256,7 +259,8 @@ export function NodeProvider({ children }: { children: ReactNode }) {
       
       // Clear output data for specified flow
       setOutputNodeData(prev => {
-        const { [flowId]: removed, ...rest } = prev;
+        const rest = { ...prev };
+        delete rest[flowId];
         return rest;
       });
     }
@@ -427,12 +431,4 @@ export function NodeProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useNodeContext() {
-  const context = useContext(NodeContext);
-  
-  if (context === undefined) {
-    throw new Error('useNodeContext must be used within a NodeProvider');
-  }
-  
-  return context;
-} 
+ 

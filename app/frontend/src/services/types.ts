@@ -15,7 +15,7 @@ export interface AgentModelConfig {
 export interface GraphNode {
   id: string;
   type?: string;
-  data?: any;
+  data?: Record<string, unknown>;
   position?: { x: number; y: number };
 }
 
@@ -24,13 +24,69 @@ export interface GraphEdge {
   source: string;
   target: string;
   type?: string;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
 export interface PortfolioPosition {
   ticker: string;
   quantity: number;
   trade_price: number;
+}
+
+export interface AnalystSignal {
+  signal?: string;
+  confidence?: number;
+  reasoning?: unknown;
+  [key: string]: unknown;
+}
+
+export interface TradeDecision {
+  action?: string;
+  quantity?: number;
+  confidence?: number;
+  reasoning?: unknown;
+  [key: string]: unknown;
+}
+
+export interface BacktestTickerDetail {
+  ticker: string;
+  action?: string;
+  quantity?: number;
+  price?: number;
+  shares_owned?: number;
+  long_shares?: number;
+  short_shares?: number;
+  position_value?: number;
+  bullish_count?: number;
+  bearish_count?: number;
+  neutral_count?: number;
+}
+
+export interface BacktestPortfolioPosition {
+  long: number;
+  short: number;
+  long_cost_basis: number;
+  short_cost_basis: number;
+}
+
+export interface BacktestPerformanceMetrics {
+  sharpe_ratio?: number;
+  sortino_ratio?: number;
+  max_drawdown?: number;
+  max_drawdown_date?: string;
+  long_short_ratio?: number;
+  gross_exposure?: number;
+  net_exposure?: number;
+}
+
+export interface BacktestPeriodResult {
+  date: string;
+  portfolio_value: number;
+  cash: number;
+  portfolio_return?: number;
+  long_short_ratio?: number | null;
+  ticker_details?: BacktestTickerDetail[];
+  performance_metrics?: BacktestPerformanceMetrics;
 }
 
 // Base interface for shared fields between HedgeFundRequest and BacktestRequest
@@ -61,9 +117,9 @@ export interface BacktestDayResult {
   date: string;
   portfolio_value: number;
   cash: number;
-  decisions: Record<string, any>;
+  decisions: Record<string, TradeDecision>;
   executed_trades: Record<string, number>;
-  analyst_signals: Record<string, any>;
+  analyst_signals: Record<string, Record<string, AnalystSignal>>;
   current_prices: Record<string, number>;
   long_exposure: number;
   short_exposure: number;
@@ -71,13 +127,3 @@ export interface BacktestDayResult {
   net_exposure: number;
   long_short_ratio: number | null;
 }
-
-export interface BacktestPerformanceMetrics {
-  sharpe_ratio?: number;
-  sortino_ratio?: number;
-  max_drawdown?: number;
-  max_drawdown_date?: string;
-  long_short_ratio?: number;
-  gross_exposure?: number;
-  net_exposure?: number;
-} 

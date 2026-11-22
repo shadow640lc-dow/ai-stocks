@@ -1,4 +1,4 @@
-import { useTabsContext } from '@/contexts/tabs-context';
+import { useTabsContext } from '@/contexts/context-hooks';
 import { cn } from '@/lib/utils';
 import { TabService } from '@/services/tab-service';
 import { FileText, FolderOpen } from 'lucide-react';

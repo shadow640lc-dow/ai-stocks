@@ -3,8 +3,8 @@ import { FileText } from 'lucide-react';
 import { useState } from 'react';
 
 import { CardContent } from '@/components/ui/card';
-import { useFlowContext } from '@/contexts/flow-context';
-import { useNodeContext } from '@/contexts/node-context';
+import { useFlowContext } from '@/contexts/context-hooks';
+import { useNodeContext } from '@/contexts/context-hooks';
 import { useOutputNodeConnection } from '@/hooks/use-output-node-connection';
 import { type InvestmentReportNode } from '../types';
 import { InvestmentReportDialog } from './investment-report-dialog';

@@ -17,7 +17,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import '@xyflow/react/dist/style.css';
 
-import { useFlowContext } from '@/contexts/flow-context';
+import { useFlowContext } from '@/contexts/context-hooks';
 import { useEnhancedFlowActions } from '@/hooks/use-enhanced-flow-actions';
 import { useFlowHistory } from '@/hooks/use-flow-history';
 import { useFlowKeyboardShortcuts, useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
@@ -203,7 +203,7 @@ export function Flow({ className = '' }: FlowProps) {
       } else {
         error('Failed to save flow', 'flow-save-error');
       }
-    } catch (err) {
+    } catch {
       error('Failed to save flow', 'flow-save-error');
     }
   });

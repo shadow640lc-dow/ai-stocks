@@ -1,7 +1,7 @@
 import { FlowItemGroup } from '@/components/panels/left/flow-item-group';
 import { SearchBox } from '@/components/panels/search-box';
 import { Accordion } from '@/components/ui/accordion';
-import { useTabsContext } from '@/contexts/tabs-context';
+import { useTabsContext } from '@/contexts/context-hooks';
 import { Flow } from '@/types/flow';
 import { FolderOpen } from 'lucide-react';
 

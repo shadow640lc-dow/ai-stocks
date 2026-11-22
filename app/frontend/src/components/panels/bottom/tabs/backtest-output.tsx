@@ -1,11 +1,34 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AgentNodeData, OutputNodeData } from '@/contexts/node-context';
 import { cn } from '@/lib/utils';
+import type { BacktestPeriodResult } from '@/services/types';
 import { MoreHorizontal } from 'lucide-react';
 import { getActionColor } from './output-tab-utils';
 
+interface BacktestTableRow {
+  type: 'ticker' | 'summary';
+  date: string;
+  ticker?: string;
+  action?: string;
+  quantity?: number;
+  price?: number;
+  shares_owned?: number;
+  long_shares?: number;
+  short_shares?: number;
+  position_value?: number;
+  bullish_count?: number;
+  bearish_count?: number;
+  neutral_count?: number;
+  portfolio_value?: number;
+  cash?: number;
+  portfolio_return?: number;
+  total_position_value?: number;
+  performance_metrics?: BacktestPeriodResult['performance_metrics'];
+}
+
 // Component for displaying backtest progress
-function BacktestProgress({ agentData }: { agentData: Record<string, any> }) {
+function BacktestProgress({ agentData }: { agentData: Record<string, AgentNodeData> }) {
   const backtestAgent = agentData['backtest'];
   
   if (!backtestAgent) return null;
@@ -31,7 +54,7 @@ function BacktestProgress({ agentData }: { agentData: Record<string, any> }) {
 }
 
 // Component for displaying backtest trading table (similar to CLI)
-function BacktestTradingTable({ agentData }: { agentData: Record<string, any> }) {
+function BacktestTradingTable({ agentData }: { agentData: Record<string, AgentNodeData> }) {
   const backtestAgent = agentData['backtest'];
 
   // console.log("backtestAgent", backtestAgent);
@@ -48,12 +71,12 @@ function BacktestTradingTable({ agentData }: { agentData: Record<string, any> })
   }
   
   // Build table rows similar to CLI format
-  const tableRows: any[] = [];
+  const tableRows: BacktestTableRow[] = [];
   
-  backtestResults.forEach((backtestResult: any) => {    
+  backtestResults.forEach((backtestResult) => {
     // Add ticker rows for this period
     if (backtestResult.ticker_details) {
-      backtestResult.ticker_details.forEach((ticker: any) => {
+      backtestResult.ticker_details.forEach((ticker) => {
         tableRows.push({
           type: 'ticker',
           date: backtestResult.date,
@@ -113,7 +136,7 @@ function BacktestTradingTable({ agentData }: { agentData: Record<string, any> })
               </TableRow>
             </TableHeader>
             <TableBody>
-              {recentRows.map((row: any, idx: number) => {
+              {recentRows.map((row, idx) => {
                 if (row.type === 'ticker') {
                   return (
                     <TableRow key={idx}>
@@ -148,7 +171,7 @@ function BacktestTradingTable({ agentData }: { agentData: Record<string, any> })
 }
 
 // Component for displaying backtest results
-function BacktestResults({ outputData }: { outputData: any }) {
+function BacktestResults({ outputData }: { outputData: OutputNodeData | null }) {
   if (!outputData) {
     return null;
   }
@@ -171,7 +194,8 @@ function BacktestResults({ outputData }: { outputData: any }) {
   }
   
   const { performance_metrics, final_portfolio, total_days } = outputData;
-  
+  const portfolio = final_portfolio ?? { cash: 0, margin_used: 0, positions: {} };
+
   return (
     <Card className="bg-transparent mb-4">
       <CardHeader>
@@ -220,11 +244,11 @@ function BacktestResults({ outputData }: { outputData: any }) {
               </div>
               <div className="flex justify-between">
                 <span>Final Cash:</span>
-                <span className="font-medium">${final_portfolio.cash.toLocaleString()}</span>
+                <span className="font-medium">${portfolio.cash.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
                 <span>Margin Used:</span>
-                <span className="font-medium">${final_portfolio.margin_used.toLocaleString()}</span>
+                <span className="font-medium">${portfolio.margin_used.toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -258,7 +282,7 @@ function BacktestResults({ outputData }: { outputData: any }) {
         </div>
         
         {/* Final Positions */}
-        {final_portfolio.positions && (
+        {portfolio.positions && (
           <div>
             <h4 className="font-medium mb-2">Final Positions</h4>
             <Table>
@@ -272,7 +296,7 @@ function BacktestResults({ outputData }: { outputData: any }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {Object.entries(final_portfolio.positions).map(([ticker, position]: [string, any]) => (
+                {Object.entries(portfolio.positions).map(([ticker, position]) => (
                   <TableRow key={ticker}>
                     <TableCell className="font-medium">{ticker}</TableCell>
                     <TableCell className={cn(position.long > 0 ? "text-green-500" : "text-muted-foreground")}>
@@ -295,7 +319,7 @@ function BacktestResults({ outputData }: { outputData: any }) {
 }
 
 // Component for displaying real-time backtest performance
-function BacktestPerformanceMetrics({ agentData }: { agentData: Record<string, any> }) {
+function BacktestPerformanceMetrics({ agentData }: { agentData: Record<string, AgentNodeData> }) {
   const backtestAgent = agentData['backtest'];
   
   if (!backtestAgent || !backtestAgent.backtestResults) return null;
@@ -314,7 +338,7 @@ function BacktestPerformanceMetrics({ agentData }: { agentData: Record<string, a
   const totalReturn = ((currentValue - initialValue) / initialValue) * 100;
   
   // Calculate win rate (periods with positive returns)
-  const periodReturns = backtestResults.slice(1).map((period: any, idx: number) => {
+  const periodReturns = backtestResults.slice(1).map((period, idx) => {
     const prevPeriod = backtestResults[idx];
     return ((period.portfolio_value - prevPeriod.portfolio_value) / prevPeriod.portfolio_value) * 100;
   });
@@ -326,7 +350,7 @@ function BacktestPerformanceMetrics({ agentData }: { agentData: Record<string, a
   let maxDrawdown = 0;
   let peak = initialValue;
   
-  backtestResults.forEach((period: any) => {
+  backtestResults.forEach((period) => {
     if (period.portfolio_value > peak) {
       peak = period.portfolio_value;
     }
@@ -396,8 +420,8 @@ export function BacktestOutput({
   agentData, 
   outputData 
 }: { 
-  agentData: Record<string, any>; 
-  outputData: any; 
+  agentData: Record<string, AgentNodeData>; 
+  outputData: OutputNodeData | null; 
 }) {
   return (
     <>

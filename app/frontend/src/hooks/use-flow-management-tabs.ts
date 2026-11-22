@@ -1,6 +1,6 @@
-import { useFlowContext } from '@/contexts/flow-context';
-import { useNodeContext } from '@/contexts/node-context';
-import { useTabsContext } from '@/contexts/tabs-context';
+import { useFlowContext } from '@/contexts/context-hooks';
+import { useNodeContext } from '@/contexts/context-hooks';
+import { useTabsContext } from '@/contexts/context-hooks';
 import {
   clearFlowNodeStates,
   getNodeInternalState,
@@ -67,7 +67,7 @@ export function useFlowManagementTabs(): UseFlowManagementTabsReturn {
       const nodeContextData = exportNodeContextData(flowId);
       
       // Enhance nodes with internal states
-      const nodesWithStates = currentNodes.map((node: any) => {
+      const nodesWithStates = currentNodes.map((node) => {
         const internalState = getNodeInternalState(node.id);
         return {
           ...node,
@@ -228,7 +228,7 @@ export function useFlowManagementTabs(): UseFlowManagementTabsReturn {
             
             // Restore internal states for each node (use-node-state data - configuration only)
             if (flowData.nodes) {
-              flowData.nodes.forEach((node: any) => {
+              flowData.nodes.forEach((node) => {
                 if (node.data?.internal_state) {
                   setNodeInternalState(node.id, node.data.internal_state);
                 }

@@ -5,9 +5,11 @@ import { clearAllNodeStates, getAllNodeStates, setNodeInternalState, setCurrentF
 import { flowService } from '@/services/flow-service';
 import { Flow } from '@/types/flow';
 import { MarkerType, ReactFlowInstance, useReactFlow, XYPosition } from '@xyflow/react';
-import { createContext, ReactNode, useCallback, useContext, useState } from 'react';
+import { ReactNode, useCallback, useState } from 'react';
 
-interface FlowContextType {
+import { FlowContext } from './context-hooks';
+
+export interface FlowContextType {
   addComponentToFlow: (componentName: string) => Promise<void>;
   saveCurrentFlow: (name?: string, description?: string) => Promise<Flow | null>;
   loadFlow: (flow: Flow) => Promise<void>;
@@ -16,16 +18,6 @@ interface FlowContextType {
   currentFlowName: string;
   isUnsaved: boolean;
   reactFlowInstance: ReactFlowInstance;
-}
-
-const FlowContext = createContext<FlowContextType | null>(null);
-
-export function useFlowContext() {
-  const context = useContext(FlowContext);
-  if (!context) {
-    throw new Error('useFlowContext must be used within a FlowProvider');
-  }
-  return context;
 }
 
 interface FlowProviderProps {
@@ -147,7 +139,7 @@ export function FlowProvider({ children }: FlowProviderProps) {
         
         if (dataToRestore) {
           Object.entries(dataToRestore).forEach(([nodeId, nodeState]) => {
-            setNodeInternalState(nodeId, nodeState as Record<string, any>);
+            setNodeInternalState(nodeId, nodeState as Record<string, unknown>);
           });
         }
         

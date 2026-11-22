@@ -1,11 +1,14 @@
-import { NodeStatus, useNodeContext } from '@/contexts/node-context';
+import { useNodeContext } from '@/contexts/context-hooks';
+import { NodeStatus } from '@/contexts/node-context';
 import { extractBaseAgentKey } from '@/data/node-mappings';
 import { flowConnectionManager } from '@/hooks/use-flow-connection';
 import {
   BacktestDayResult,
   BacktestPerformanceMetrics,
+  BacktestPeriodResult,
   BacktestRequest
 } from '@/services/types';
+import { getErrorMessage, isAbortError } from '@/utils/errors';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -50,12 +53,12 @@ export const backtestApi = {
       let buffer = '';
       
       // Local array to accumulate backtest results
-      let backtestResults: any[] = [];
+      let backtestResults: BacktestPeriodResult[] = [];
       
       // Function to process the stream
       const processStream = async () => {
         try {
-          while (true) {
+          for (;;) {
             const { done, value } = await reader.read();
             
             if (done) {
@@ -151,15 +154,15 @@ export const backtestApi = {
                     case 'complete':
                       // Store the complete backtest results
                       if (eventData.data) {
-                        const backtestResults = {
+                        const completePayload = {
                           decisions: { backtest: { type: 'backtest_complete' } },
                           analyst_signals: {},
                           performance_metrics: eventData.data.performance_metrics,
                           final_portfolio: eventData.data.final_portfolio,
                           total_days: eventData.data.total_days,
                         };
-                        
-                        nodeContext.setOutputNodeData(flowId, backtestResults);
+
+                        nodeContext.setOutputNodeData(flowId, completePayload);
                       }
                       
                       // Mark the backtest agent as complete
@@ -230,24 +233,25 @@ export const backtestApi = {
               });
             }
           }
-        } catch (error: any) {
-          if (error.name === 'AbortError') {
-          } else {
-            console.error('Error reading backtest SSE stream:', error);
-            // Mark nodes as error when there's a connection error
-            nodeContext.updateAgentNode(flowId, 'portfolio-start', {
-              status: 'ERROR',
-              message: 'Connection error during backtest',
+        } catch (error) {
+          if (isAbortError(error)) {
+            return;
+          }
+
+          console.error('Error reading backtest SSE stream:', error);
+          // Mark nodes as error when there's a connection error
+          nodeContext.updateAgentNode(flowId, 'portfolio-start', {
+            status: 'ERROR',
+            message: 'Connection error during backtest',
+          });
+
+          // Update flow connection state to error
+          if (flowId) {
+            flowConnectionManager.setConnection(flowId, {
+              state: 'error',
+              error: getErrorMessage(error, 'Connection error'),
+              abortController: null,
             });
-            
-            // Update flow connection state to error
-            if (flowId) {
-              flowConnectionManager.setConnection(flowId, {
-                state: 'error',
-                error: error.message || 'Connection error',
-                abortController: null,
-              });
-            }
           }
         }
       };
@@ -255,7 +259,7 @@ export const backtestApi = {
       // Start processing the stream
       processStream();
     })
-    .catch((error: any) => {
+    .catch((error) => {
       console.error('Backtest SSE connection error:', error);
       // Mark nodes as error when there's a connection error
       nodeContext.updateAgentNode(flowId, 'portfolio-start', {
@@ -267,7 +271,7 @@ export const backtestApi = {
       if (flowId) {
         flowConnectionManager.setConnection(flowId, {
           state: 'error',
-          error: error.message || 'Connection failed',
+          error: getErrorMessage(error, 'Connection failed'),
           abortController: null,
         });
       }

@@ -1,14 +1,17 @@
+import type { Edge, Viewport } from '@xyflow/react';
+
 import { Flow } from '@/types/flow';
+import type { FlowData, FlowNode } from '@/types/flow';
 
 const API_BASE_URL = 'http://localhost:8000';
 
 export interface CreateFlowRequest {
   name: string;
   description?: string;
-  nodes: any;
-  edges: any;
-  viewport?: any;
-  data?: any;
+  nodes: FlowNode[];
+  edges: Edge[];
+  viewport?: Viewport;
+  data?: FlowData;
   is_template?: boolean;
   tags?: string[];
 }
@@ -16,10 +19,10 @@ export interface CreateFlowRequest {
 export interface UpdateFlowRequest {
   name?: string;
   description?: string;
-  nodes?: any;
-  edges?: any;
-  viewport?: any;
-  data?: any;
+  nodes?: FlowNode[];
+  edges?: Edge[];
+  viewport?: Viewport;
+  data?: FlowData;
   is_template?: boolean;
   tags?: string[];
 }
@@ -96,7 +99,7 @@ export const flowService = {
   },
 
   // Create a default flow for new users
-  async createDefaultFlow(nodes: any, edges: any, viewport?: any): Promise<Flow> {
+  async createDefaultFlow(nodes: FlowNode[], edges: Edge[], viewport?: Viewport): Promise<Flow> {
     return this.createFlow({
       name: 'My First Flow',
       description: 'Welcome to AI Hedge Fund! Start building your flow here.',

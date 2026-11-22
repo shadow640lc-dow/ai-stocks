@@ -1,6 +1,6 @@
 import ComponentItem from '@/components/panels/right/component-item';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { useFlowContext } from '@/contexts/flow-context';
+import { useFlowContext } from '@/contexts/context-hooks';
 import { ComponentGroup } from '@/data/sidebar-components';
 
 interface ComponentItemGroupProps {

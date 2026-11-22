@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AgentNodeData, OutputNodeData } from '@/contexts/node-context';
 import { cn } from '@/lib/utils';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getActionColor, getDisplayName, getSignalColor, getStatusIcon } from './output-tab-utils';
 import { ReasoningContent } from './reasoning-content';
 
@@ -24,7 +25,7 @@ const SECTION_STYLES = {
 };
 
 // Progress Section Component with enhanced styling
-function ProgressSection({ sortedAgents, outputData }: { sortedAgents: [string, any][]; outputData: any }) {
+function ProgressSection({ sortedAgents, outputData }: { sortedAgents: [string, AgentNodeData][]; outputData: OutputNodeData | null }) {
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
 
   if (sortedAgents.length === 0) return null;
@@ -51,7 +52,7 @@ function ProgressSection({ sortedAgents, outputData }: { sortedAgents: [string, 
                   className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
                   onClick={() => setExpandedAgent(isExpanded ? null : agentId)}
                 >
-                  <ProgressDot active={data.status === 'in_progress'} />
+                  <ProgressDot active={data.status === 'IN_PROGRESS'} />
                   <StatusIcon className={cn("h-4 w-4 flex-shrink-0", color)} />
                   <span className="font-medium text-sm flex-1 truncate">{displayName}</span>
                   {data.ticker && (
@@ -86,7 +87,7 @@ function ProgressSection({ sortedAgents, outputData }: { sortedAgents: [string, 
 }
 
 // Summary Section Component with enhanced styling
-function SummarySection({ outputData }: { outputData: any }) {
+function SummarySection({ outputData }: { outputData: OutputNodeData | null }) {
   if (!outputData) return null;
 
   return (
@@ -105,7 +106,7 @@ function SummarySection({ outputData }: { outputData: any }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {Object.entries(outputData.decisions).map(([ticker, decision]: [string, any]) => (
+            {Object.entries(outputData.decisions).map(([ticker, decision]) => (
               <TableRow key={ticker} className="hover:bg-muted/30 transition-colors">
                 <TableCell className="font-semibold">{ticker}</TableCell>
                 <TableCell>
@@ -125,12 +126,15 @@ function SummarySection({ outputData }: { outputData: any }) {
 }
 
 // Analysis Results Section Component with enhanced styling
-function AnalysisResultsSection({ outputData }: { outputData: any }) {
+function AnalysisResultsSection({ outputData }: { outputData: OutputNodeData | null }) {
   // Always call hooks at the top of the function
   const [selectedTicker, setSelectedTicker] = useState<string>('');
 
   // Calculate tickers (safe to do even if outputData is null)
-  const tickers = outputData?.decisions ? Object.keys(outputData.decisions) : [];
+  const tickers = useMemo(
+    () => (outputData?.decisions ? Object.keys(outputData.decisions) : []),
+    [outputData]
+  );
 
   // Set default selected ticker
   useEffect(() => {
@@ -163,7 +167,7 @@ function AnalysisResultsSection({ outputData }: { outputData: any }) {
           </TabsList>
 
           {tickers.map((ticker) => {
-            const decision = outputData.decisions![ticker];
+            const decision = outputData.decisions[ticker];
 
             return (
               <TabsContent key={ticker} value={ticker} className="space-y-4">
@@ -184,11 +188,11 @@ function AnalysisResultsSection({ outputData }: { outputData: any }) {
                       </TableHeader>
                       <TableBody>
                         {Object.entries(outputData.analyst_signals || {})
-                          .filter(([agent, signals]: [string, any]) =>
+                          .filter(([agent, signals]) =>
                             ticker in signals && !agent.includes("risk_management")
                           )
                           .sort(([agentA], [agentB]) => agentA.localeCompare(agentB))
-                          .map(([agent, signals]: [string, any]) => {
+                          .map(([agent, signals]) => {
                             const signal = signals[ticker];
                             const signalType = signal.signal?.toUpperCase() || 'UNKNOWN';
                             const signalColor = getSignalColor(signalType);
@@ -241,14 +245,14 @@ function AnalysisResultsSection({ outputData }: { outputData: any }) {
                           <TableCell className="font-semibold">Confidence</TableCell>
                           <TableCell className="font-mono">{decision.confidence?.toFixed(1) || 0}%</TableCell>
                         </TableRow>
-                        {decision.reasoning && (
+                        {decision.reasoning ? (
                           <TableRow className="hover:bg-muted/30 transition-colors">
                             <TableCell className="font-semibold">Reasoning</TableCell>
                             <TableCell className="max-w-md">
                               <ReasoningContent content={decision.reasoning} />
                             </TableCell>
                           </TableRow>
-                        )}
+                        ) : null}
                       </TableBody>
                     </Table>
                   </CardContent>
@@ -267,8 +271,8 @@ export function RegularOutput({
   sortedAgents,
   outputData,
 }: {
-  sortedAgents: [string, any][];
-  outputData: any;
+  sortedAgents: [string, AgentNodeData][];
+  outputData: OutputNodeData | null;
 }) {
   return (
     <>

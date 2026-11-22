@@ -1,4 +1,5 @@
-import { NodeStatus, OutputNodeData, useNodeContext } from '@/contexts/node-context';
+import { useNodeContext } from '@/contexts/context-hooks';
+import { NodeStatus, OutputNodeData } from '@/contexts/node-context';
 import { Agent } from '@/data/agents';
 import { LanguageModel } from '@/data/models';
 import { extractBaseAgentKey } from '@/data/node-mappings';
@@ -6,6 +7,7 @@ import { flowConnectionManager } from '@/hooks/use-flow-connection';
 import {
   HedgeFundRequest
 } from '@/services/types';
+import { getErrorMessage, isAbortError } from '@/utils/errors';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -52,7 +54,7 @@ export const api = {
    * @param data The JSON data to save
    * @returns Promise that resolves when the file is saved
    */
-  saveJsonFile: async (filename: string, data: any): Promise<void> => {
+  saveJsonFile: async (filename: string, data: unknown): Promise<void> => {
     try {
       const response = await fetch(`${API_BASE_URL}/storage/save-json`, {
         method: 'POST',
@@ -131,7 +133,7 @@ export const api = {
       // Function to process the stream
       const processStream = async () => {
         try {
-          while (true) {
+          for (;;) {
             const { done, value } = await reader.read();
             
             if (done) {
@@ -256,8 +258,8 @@ export const api = {
               });
             }
           }
-        } catch (error: any) { // Type assertion for error
-          if (error.name !== 'AbortError') {
+        } catch (error) {
+          if (!isAbortError(error)) {
             console.error('Error reading SSE stream:', error);
             // Mark all agents as error when there's a connection error
             nodeContext.updateAgentNodes(flowId, getAgentIds(), 'ERROR');
@@ -266,7 +268,7 @@ export const api = {
             if (flowId) {
               flowConnectionManager.setConnection(flowId, {
                 state: 'error',
-                error: error.message || 'Connection error',
+                error: getErrorMessage(error, 'Connection error'),
                 abortController: null,
               });
             }
@@ -277,8 +279,8 @@ export const api = {
       // Start processing the stream
       processStream();
     })
-    .catch((error: any) => { // Type assertion for error
-      if (error.name !== 'AbortError') {
+    .catch((error) => {
+      if (!isAbortError(error)) {
         console.error('SSE connection error:', error);
         // Mark all agents as error when there's a connection error
         nodeContext.updateAgentNodes(flowId, getAgentIds(), 'ERROR');
@@ -287,7 +289,7 @@ export const api = {
         if (flowId) {
           flowConnectionManager.setConnection(flowId, {
             state: 'error',
-            error: error.message || 'Connection failed',
+            error: getErrorMessage(error, 'Connection failed'),
             abortController: null,
           });
         }

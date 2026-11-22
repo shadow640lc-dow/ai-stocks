@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, Brain, CheckCircle, Download, Play, RefreshCw, Server, Square, Trash2, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface OllamaStatus {
   installed: boolean;
@@ -168,7 +168,7 @@ export function OllamaSettings() {
 
       if (reader) {
         try {
-          while (true) {
+          for (;;) {
             const { done, value } = await reader.read();
             if (done) break;
 
@@ -532,16 +532,23 @@ export function OllamaSettings() {
     }
   };
 
+  // Keep the latest callbacks available to the effects without re-running them
+  // every time a state update recreates the functions.
+  const refreshStatusRef = useRef(refreshStatus);
+  refreshStatusRef.current = refreshStatus;
+  const checkForActiveDownloadsRef = useRef(checkForActiveDownloads);
+  checkForActiveDownloadsRef.current = checkForActiveDownloads;
+
   useEffect(() => {
-    refreshStatus();
+    void refreshStatusRef.current();
   }, []);
 
   // Check for active downloads after we have status and models data
   useEffect(() => {
     if (ollamaStatus?.running && recommendedModels.length > 0) {
-      checkForActiveDownloads();
+      void checkForActiveDownloadsRef.current();
     }
-  }, [ollamaStatus?.running, recommendedModels.length]); // Only depend on running status and whether we have models
+  }, [ollamaStatus?.running, recommendedModels.length]);
 
   // Cleanup polling intervals on unmount
   useEffect(() => {

@@ -1,8 +1,8 @@
 import { getConnectedEdges, useReactFlow } from '@xyflow/react';
 import { useMemo } from 'react';
 
-import { useFlowContext } from '@/contexts/flow-context';
-import { useNodeContext } from '@/contexts/node-context';
+import { useFlowContext } from '@/contexts/context-hooks';
+import { useNodeContext } from '@/contexts/context-hooks';
 
 /**
  * Custom hook to determine output node connection state and processing status
@@ -25,7 +25,8 @@ export function useOutputNodeConnection(nodeId: string) {
     const edges = getEdges();
     
     // Find edges connected to this output node
-    const connectedEdges = getConnectedEdges([{ id: nodeId }] as any, edges);
+    const outputNode = nodes.find(node => node.id === nodeId);
+    const connectedEdges = getConnectedEdges(outputNode ? [outputNode] : [], edges);
     const connectedAgentIds = connectedEdges
       .filter(edge => edge.target === nodeId)
       .map(edge => edge.source)
