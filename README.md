@@ -11,6 +11,16 @@ desktop terminal, a web application, a CLI, a backtester, and opt-in live execut
 > **Educational and research use only.** This is not investment advice. Nothing here
 > is guaranteed to make money. Live trading is opt-in, gated, and off by default.
 
+## Screenshots
+
+[![MEGATRON MEGASTOCKS desktop terminal showing a TSLA candlestick chart, research configuration and execution gate](assets/screenshots/megastocks-desktop.png)](assets/screenshots/megastocks-desktop.png)
+
+*MEGASTOCKS — stock intelligence desk with multi-ticker research, a candlestick workspace and a gated execution panel.*
+
+[![MEGATRON MEGACRYPTO Solana command center showing the arbitrage scanner and execution gate](assets/screenshots/megacrypto-solana.png)](assets/screenshots/megacrypto-solana.png)
+
+*MEGACRYPTO — Solana command center with an arbitrage scanner and its own execution gate.*
+
 ## What is in the box
 
 | Surface | What it does |
